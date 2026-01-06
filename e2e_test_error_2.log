@@ -1,0 +1,598 @@
+=== RUN   TestE2E_UserJourney
+2026-01-06T23:01:25.353+0700	[34mINFO[0m	database/postgres.go:33	Database connected successfully
+2026-01-06T23:01:25.353+0700	[34mINFO[0m	database/postgres.go:42	Running Auto-Migrations...
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[5.038ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND table_type = 'BASE TABLE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.929ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[13.188ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'khalif_backend' AND table_schema = CURRENT_SCHEMA() AND table_name = 'admins'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.765ms] [34;1m[rows:-][0m SELECT * FROM "admins" LIMIT 5
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[9.726ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'admins' AND constraint_type = 'UNIQUE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[8.506ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'admins'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.595ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'admins'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[3.809ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.962ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'username') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[2.355ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'email') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[2.008ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'phone') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[2.296ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'password_hash') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[2.135ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'profile_picture') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.606ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'failed_login_attempts') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.550ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'locked_until') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.637ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'created_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.608ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'updated_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.648ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admins' AND column_name = 'deleted_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admins' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[2.402ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'admins' AND indexname = 'idx_admins_username' AND schemaname = CURRENT_SCHEMA()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.187ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'admins' AND indexname = 'idx_admins_email' AND schemaname = CURRENT_SCHEMA()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.038ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'admins' AND indexname = 'idx_admins_phone' AND schemaname = CURRENT_SCHEMA()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.085ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'admins' AND indexname = 'idx_admins_deleted_at' AND schemaname = CURRENT_SCHEMA()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.904ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND table_type = 'BASE TABLE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.289ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[5.965ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'khalif_backend' AND table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.640ms] [34;1m[rows:-][0m SELECT * FROM "admin_audit_logs" LIMIT 5
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[6.065ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'admin_audit_logs' AND constraint_type = 'UNIQUE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[6.921ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'admin_audit_logs'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.884ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'admin_audit_logs'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.621ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.660ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'admin_id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.590ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'action_type') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.622ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'old_data') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.670ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'new_data') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.702ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'admin_audit_logs' AND column_name = 'changed_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'admin_audit_logs' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.143ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND table_type = 'BASE TABLE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.399ms] [34;1m[rows:1][0m SELECT CURRENT_DATABASE()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[5.239ms] [34;1m[rows:-][0m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'khalif_backend' AND table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.841ms] [34;1m[rows:-][0m SELECT * FROM "refresh_tokens" LIMIT 5
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[5.171ms] [34;1m[rows:-][0m SELECT constraint_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'refresh_tokens' AND constraint_type = 'UNIQUE'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[5.293ms] [34;1m[rows:-][0m SELECT c.column_name, constraint_name, constraint_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_catalog, table_name, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE constraint_type IN ('PRIMARY KEY', 'UNIQUE') AND c.table_catalog = 'khalif_backend' AND c.table_schema = CURRENT_SCHEMA() AND c.table_name = 'refresh_tokens'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.732ms] [34;1m[rows:-][0m SELECT a.attname as column_name, format_type(a.atttypid, a.atttypmod) AS data_type
+		FROM pg_attribute a JOIN pg_class b ON a.attrelid = b.oid AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA())
+		WHERE a.attnum > 0 -- hide internal columns
+		AND NOT a.attisdropped -- hide deleted columns
+		AND b.relname = 'refresh_tokens'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.291ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.822ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'admin_id') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.774ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'token_hash') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.632ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'expires_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.683ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'is_revoked') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.675ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'user_agent') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.608ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'ip_address') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[0.638ms] [34;1m[rows:0][0m SELECT description FROM pg_catalog.pg_description WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'refresh_tokens' AND column_name = 'created_at') AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = 'refresh_tokens' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = CURRENT_SCHEMA()))
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.241ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'refresh_tokens' AND indexname = 'idx_refresh_tokens_admin_id' AND schemaname = CURRENT_SCHEMA()
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:44
+[0m[33m[1.156ms] [34;1m[rows:1][0m SELECT count(*) FROM pg_indexes WHERE tablename = 'refresh_tokens' AND indexname = 'idx_refresh_tokens_token_hash' AND schemaname = CURRENT_SCHEMA()
+2026-01-06T23:01:25.480+0700	[34mINFO[0m	database/postgres.go:48	Table migration complete.
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[0.897ms] [34;1m[rows:0][0m -- Up Migration
+
+-- Create Admins Table
+CREATE TABLE IF NOT EXISTS admins (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    profile_picture TEXT, -- Stores URL or Base64
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Admin Audit Logs Table (Immutable)
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+    id SERIAL PRIMARY KEY,
+    admin_id INT NOT NULL,
+    action_type VARCHAR(50) NOT NULL, -- UPDATE, DELETE
+    old_data JSONB,
+    new_data JSONB,
+    changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for faster lookup
+CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
+CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username);
+
+-- Down Migration
+-- DROP TABLE IF EXISTS admin_audit_logs;
+-- DROP TABLE IF EXISTS admins;
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[3.283ms] [34;1m[rows:0][0m -- Up Migration
+
+-- Enable pgcrypto for UUIDs if needed (optional)
+-- CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE PROCEDURE sp_handle_login_failure(
+    p_email VARCHAR,
+    OUT p_is_locked BOOLEAN,
+    OUT p_message VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_admin_id INT;
+    v_failed_attempts INT;
+    v_max_attempts INT := 5;
+    v_lockout_duration INTERVAL := '30 minutes';
+    v_locked_until TIMESTAMP;
+BEGIN
+    p_is_locked := FALSE;
+    p_message := 'Check complete';
+
+    -- Find admin by email
+    SELECT id, failed_login_attempts, locked_until 
+    INTO v_admin_id, v_failed_attempts, v_locked_until
+    FROM admins 
+    WHERE email = p_email;
+
+    -- If admin not found, legitimate security practice: do nothing or delay? 
+    -- Here we do nothing to avoid enumeration, or handle at app level.
+    IF v_admin_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- Check if currently locked
+    IF v_locked_until IS NOT NULL AND v_locked_until > NOW() THEN
+        p_is_locked := TRUE;
+        p_message := 'Account is locked';
+        RETURN;
+    END IF;
+
+    -- If lock expired, reset
+    IF v_locked_until IS NOT NULL AND v_locked_until <= NOW() THEN
+        UPDATE admins SET failed_login_attempts = 0, locked_until = NULL WHERE id = v_admin_id;
+        v_failed_attempts := 0;
+    END IF;
+
+    -- Increment failure count
+    v_failed_attempts := v_failed_attempts + 1;
+
+    -- Lock if threshold reached
+    IF v_failed_attempts >= v_max_attempts THEN
+        UPDATE admins 
+        SET failed_login_attempts = v_failed_attempts,
+            locked_until = NOW() + v_lockout_duration
+        WHERE id = v_admin_id;
+        
+        p_is_locked := TRUE;
+        p_message := 'Account locked due to excessive failed attempts';
+    ELSE
+        UPDATE admins 
+        SET failed_login_attempts = v_failed_attempts
+        WHERE id = v_admin_id;
+    END IF;
+END;
+$$;
+
+-- Down Migration
+-- DROP PROCEDURE IF EXISTS sp_handle_login_failure;
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[2.829ms] [34;1m[rows:0][0m -- Up Migration
+
+CREATE OR REPLACE FUNCTION func_audit_admin_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'UPDATE') THEN
+        INSERT INTO admin_audit_logs (admin_id, action_type, old_data, new_data)
+        VALUES (OLD.id, 'UPDATE', row_to_json(OLD), row_to_json(NEW));
+        RETURN NEW;
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO admin_audit_logs (admin_id, action_type, old_data, new_data)
+        VALUES (OLD.id, 'DELETE', row_to_json(OLD), NULL);
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_admin_update ON admins;
+
+CREATE TRIGGER trg_admin_update
+AFTER UPDATE OR DELETE ON admins
+FOR EACH ROW
+EXECUTE FUNCTION func_audit_admin_changes();
+
+-- Down Migration
+-- DROP TRIGGER IF EXISTS trg_admin_update ON admins;
+-- DROP FUNCTION IF EXISTS func_audit_admin_changes;
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[1.946ms] [34;1m[rows:0][0m -- Up Migration
+-- Table Schema managed by GORM AutoMigrate (Hybrid Approach)
+
+-- Stored Procedure to Revoke All Tokens for a User (Security)
+CREATE OR REPLACE PROCEDURE sp_revoke_user_tokens(
+    p_admin_id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE refresh_tokens
+    SET is_revoked = TRUE
+    WHERE admin_id = p_admin_id AND is_revoked = FALSE;
+END;
+$$;
+
+-- Down Migration
+-- DROP TABLE IF EXISTS refresh_tokens;
+-- DROP PROCEDURE IF EXISTS sp_revoke_user_tokens;
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[2.472ms] [34;1m[rows:0][0m -- Up Migration
+-- SP to CHECK lock status WITHOUT incrementing failure counter
+
+CREATE OR REPLACE PROCEDURE sp_check_lock_status(
+    p_email VARCHAR,
+    OUT p_is_locked BOOLEAN,
+    OUT p_message VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_admin_id INT;
+    v_locked_until TIMESTAMP;
+BEGIN
+    p_is_locked := FALSE;
+    p_message := 'Account is active';
+
+    SELECT id, locked_until 
+    INTO v_admin_id, v_locked_until
+    FROM admins 
+    WHERE email = p_email;
+
+    IF v_admin_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF v_locked_until IS NOT NULL AND v_locked_until > NOW() THEN
+        p_is_locked := TRUE;
+        p_message := 'Account is locked';
+        RETURN;
+    END IF;
+
+    IF v_locked_until IS NOT NULL AND v_locked_until <= NOW() THEN
+        UPDATE admins SET failed_login_attempts = 0, locked_until = NULL WHERE id = v_admin_id;
+    END IF;
+END;
+$$;
+
+-- Down Migration
+-- DROP PROCEDURE IF EXISTS sp_check_lock_status;
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:68
+[0m[33m[3.111ms] [34;1m[rows:0][0m -- Create users table
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    profile_picture TEXT,
+    failed_login_attempts INT DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at);
+
+-- Create user_refresh_tokens table
+CREATE TABLE IF NOT EXISTS user_refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_revoked BOOLEAN DEFAULT FALSE,
+    user_agent VARCHAR(255),
+    ip_address VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_refresh_token_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_refresh_tokens_user_id ON user_refresh_tokens(user_id);
+
+-- Create stored procedure for user login failures (similar to admin)
+CREATE OR REPLACE FUNCTION sp_handle_user_login_failure(
+    p_email VARCHAR
+) RETURNS TABLE (
+    is_locked BOOLEAN,
+    remaining_lock_time INTERVAL
+) AS $$
+DECLARE
+    v_failed_attempts INT;
+    v_locked_until TIMESTAMP WITH TIME ZONE;
+    v_max_attempts INT := 5;
+    v_lock_duration INTERVAL := '30 minutes';
+BEGIN
+    SELECT failed_login_attempts, locked_until
+    INTO v_failed_attempts, v_locked_until
+    FROM users
+    WHERE email = p_email AND deleted_at IS NULL;
+
+    IF NOT FOUND THEN
+        RETURN;
+    END IF;
+
+    -- Check if locked
+    IF v_locked_until IS NOT NULL AND v_locked_until > NOW() THEN
+        RETURN QUERY SELECT TRUE, v_locked_until - NOW();
+        RETURN;
+    END IF;
+
+    -- Update failure count
+    UPDATE users
+    SET failed_login_attempts = failed_login_attempts + 1,
+        locked_until = CASE
+            WHEN failed_login_attempts + 1 >= v_max_attempts THEN NOW() + v_lock_duration
+            ELSE NULL
+        END
+    WHERE email = p_email;
+
+    -- Return status
+    SELECT locked_until IS NOT NULL AND locked_until > NOW(),
+           CASE WHEN locked_until > NOW() THEN locked_until - NOW() ELSE NULL END
+    INTO is_locked, remaining_lock_time
+    FROM users
+    WHERE email = p_email;
+    
+    RETURN QUERY SELECT is_locked, remaining_lock_time;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create stored procedure for checking user lock status (read-only)
+CREATE OR REPLACE FUNCTION sp_check_user_lock_status(
+    p_email VARCHAR
+) RETURNS TABLE (
+    is_locked BOOLEAN,
+    remaining_lock_time INTERVAL
+) AS $$
+DECLARE
+    v_locked_until TIMESTAMP WITH TIME ZONE;
+BEGIN
+    SELECT locked_until INTO v_locked_until
+    FROM users
+    WHERE email = p_email AND deleted_at IS NULL;
+
+    IF v_locked_until IS NOT NULL AND v_locked_until > NOW() THEN
+        RETURN QUERY SELECT TRUE, v_locked_until - NOW();
+    ELSE
+        RETURN QUERY SELECT FALSE, NULL::INTERVAL;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create stored procedure to revoke user tokens
+CREATE OR REPLACE PROCEDURE sp_revoke_user_tokens(
+    p_user_id INT,
+    p_jti VARCHAR,
+    p_is_rotation BOOLEAN DEFAULT FALSE
+) AS $$
+BEGIN
+    -- If p_jti provided, revoke that specific token (for rotation)
+    IF p_jti IS NOT NULL AND p_jti != '' THEN
+        UPDATE user_refresh_tokens
+        SET is_revoked = TRUE
+        WHERE user_id = p_user_id AND token_hash = p_jti; -- Assuming token_hash stores JTI or hash
+    END IF;
+    
+    -- If NOT rotation (e.g. logout/security breach), revoke ALL
+    IF NOT p_is_rotation THEN
+        UPDATE user_refresh_tokens
+        SET is_revoked = TRUE
+        WHERE user_id = p_user_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+2026-01-06T23:01:25.499+0700	[34mINFO[0m	database/redis.go:31	Redis connected successfully
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/tests/e2e/user_journey_test.go:46
+[0m[33m[43.117ms] [34;1m[rows:0][0m TRUNCATE TABLE users, user_refresh_tokens RESTART IDENTITY CASCADE
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (5 handlers)
+[GIN-debug] HEAD   /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (5 handlers)
+[GIN-debug] GET    /health                   --> khalif-backend/internal/adapters/handlers.(*HealthHandler).Health-fm (5 handlers)
+[GIN-debug] GET    /ready                    --> khalif-backend/internal/adapters/handlers.(*HealthHandler).Ready-fm (5 handlers)
+[GIN-debug] POST   /api/v1/auth/register     --> khalif-backend/internal/adapters/handlers/auth/admin.(*AuthHandler).Register-fm (6 handlers)
+[GIN-debug] POST   /api/v1/auth/login        --> khalif-backend/internal/adapters/handlers/auth/admin.(*AuthHandler).Login-fm (6 handlers)
+[GIN-debug] POST   /api/v1/auth/refresh      --> khalif-backend/internal/adapters/handlers/auth/admin.(*AuthHandler).RefreshToken-fm (6 handlers)
+[GIN-debug] GET    /api/v1/auth/me           --> khalif-backend/internal/adapters/handlers/auth/admin.(*AuthHandler).Me-fm (7 handlers)
+[GIN-debug] POST   /api/v1/auth/logout       --> khalif-backend/internal/adapters/handlers/auth/admin.(*AuthHandler).Logout-fm (7 handlers)
+[GIN-debug] PUT    /api/v1/admin/update      --> khalif-backend/internal/adapters/handlers/auth/admin.(*AdminHandler).UpdateProfile-fm (6 handlers)
+[GIN-debug] POST   /api/v1/users/auth/register --> khalif-backend/internal/adapters/handlers/auth/user.(*AuthHandler).Register-fm (6 handlers)
+[GIN-debug] POST   /api/v1/users/auth/login  --> khalif-backend/internal/adapters/handlers/auth/user.(*AuthHandler).Login-fm (6 handlers)
+[GIN-debug] POST   /api/v1/users/auth/refresh --> khalif-backend/internal/adapters/handlers/auth/user.(*AuthHandler).RefreshToken-fm (6 handlers)
+[GIN-debug] GET    /api/v1/users/auth/me     --> khalif-backend/internal/adapters/handlers/auth/user.(*AuthHandler).Me-fm (7 handlers)
+[GIN-debug] POST   /api/v1/users/auth/logout --> khalif-backend/internal/adapters/handlers/auth/user.(*AuthHandler).Logout-fm (7 handlers)
+[GIN-debug] PUT    /api/v1/users/update      --> khalif-backend/internal/adapters/handlers/auth/user.(*UserHandler).UpdateProfile-fm (6 handlers)
+=== RUN   TestE2E_UserJourney/1_Register
+
+2026/01/06 23:01:25 [31;1m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:25 [35;1mrecord not found
+[0m[33m[1.537ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE email = 'journey@example.com' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [31;1m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:47 [35;1mrecord not found
+[0m[33m[0.994ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE username = 'journeyuser' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:20
+[0m[33m[3.450ms] [34;1m[rows:1][0m INSERT INTO "users" ("username","email","phone","password_hash","profile_picture","failed_login_attempts","locked_until","created_at","updated_at","deleted_at") VALUES ('journeyuser','journey@example.com','08888888888','$2a$10$HZ8nIrZQAGcwcTksFVZ9muxvMGWL1SKKdAkRbgAeT4UvK2Hxi.74m','https://ui-avatars.com/api/?name=JO&background=651579&color=fff',0,NULL,'2026-01-06 23:01:25.61','2026-01-06 23:01:25.61',NULL) RETURNING "id"
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:78
+[0m[33m[2.508ms] [34;1m[rows:1][0m INSERT INTO user_refresh_tokens (user_id, token_hash, expires_at, user_agent, ip_address) VALUES (1, 'e5d5b748a4f76d087db710bbcd439ed18c417b31355198a374854ea69e795340', '2026-01-13 23:01:25.613', 'Go-http-client/1.1', '127.0.0.1')
+2026-01-06T23:01:25.616+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 201, "method": "POST", "path": "/api/v1/users/auth/register", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "86fd9730-6934-4f65-b3af-ea75f8a0835b", "latency": "67.419627ms"}
+=== RUN   TestE2E_UserJourney/2_Login
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:25
+[0m[33m[0.675ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE email = 'journey@example.com' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:78
+[0m[33m[1.910ms] [34;1m[rows:1][0m INSERT INTO user_refresh_tokens (user_id, token_hash, expires_at, user_agent, ip_address) VALUES (1, 'f22b5a65d8bcbe1fe5874530b119020342024d0d9b11a6e3ff7e16f0fdeb39eb', '2026-01-13 23:01:25.678', 'Go-http-client/1.1', '127.0.0.1')
+2026-01-06T23:01:25.680+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "POST", "path": "/api/v1/users/auth/login", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "708fe2c3-cfc5-492d-837d-ca05e92e3090", "latency": "62.717697ms"}
+=== RUN   TestE2E_UserJourney/3_GetMe
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:36
+[0m[33m[0.910ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE "users"."id" = 1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2026-01-06T23:01:25.682+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "GET", "path": "/api/v1/users/auth/me", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "df0c21e7-c72b-4a04-9c75-27636a77e665", "latency": "1.114875ms"}
+=== RUN   TestE2E_UserJourney/4_UpdateProfile
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:36
+[0m[33m[0.582ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE "users"."id" = 1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [31;1m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:47 [35;1mrecord not found
+[0m[33m[0.496ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE username = 'journey_updated' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:57
+[0m[33m[3.216ms] [34;1m[rows:1][0m UPDATE "users" SET "username"='journey_updated',"email"='journey@example.com',"phone"='08888888888',"password_hash"='$2a$10$HZ8nIrZQAGcwcTksFVZ9muxvMGWL1SKKdAkRbgAeT4UvK2Hxi.74m',"profile_picture"='https://ui-avatars.com/api/?name=JO&background=651579&color=fff',"failed_login_attempts"=0,"locked_until"=NULL,"created_at"='2026-01-06 23:01:25.61',"updated_at"='2026-01-06 23:01:25.685',"deleted_at"=NULL WHERE "users"."deleted_at" IS NULL AND "id" = 1
+2026-01-06T23:01:25.688+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "PUT", "path": "/api/v1/users/update", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "fcf9d260-518f-4d6d-9347-c5075a2cc39b", "latency": "4.951124ms"}
+=== RUN   TestE2E_UserJourney/5_RefreshToken
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:87
+[0m[33m[1.051ms] [34;1m[rows:-][0m SELECT user_id, is_revoked, expires_at FROM user_refresh_tokens WHERE token_hash = 'f22b5a65d8bcbe1fe5874530b119020342024d0d9b11a6e3ff7e16f0fdeb39eb'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:36
+[0m[33m[0.568ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE "users"."id" = 1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:105
+[0m[33m[2.162ms] [34;1m[rows:1][0m UPDATE user_refresh_tokens SET is_revoked = TRUE WHERE token_hash = 'f22b5a65d8bcbe1fe5874530b119020342024d0d9b11a6e3ff7e16f0fdeb39eb'
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:78
+[0m[33m[1.820ms] [34;1m[rows:1][0m INSERT INTO user_refresh_tokens (user_id, token_hash, expires_at, user_agent, ip_address) VALUES (1, '1427db4f54262d5e6dccc8b8887dc44a59b770b9ccfa6f62cd71d84f0db5024d', '2026-01-13 23:01:25.693', 'Go-http-client/1.1', '127.0.0.1')
+2026-01-06T23:01:25.695+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "POST", "path": "/api/v1/users/auth/refresh", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "2764477b-9dcc-4310-8c47-52a8328464a4", "latency": "6.356259ms"}
+=== RUN   TestE2E_UserJourney/6_Logout
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/auth_repo.go:110
+[0m[33m[0.912ms] [34;1m[rows:0][0m CALL sp_revoke_user_tokens(1)
+2026-01-06T23:01:25.697+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "POST", "path": "/api/v1/users/auth/logout", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "2e0063e3-9886-463f-a9a6-47f72691c6dd", "latency": "1.071547ms"}
+=== RUN   TestE2E_UserJourney/7_VerifyLogout
+
+2026/01/06 23:01:25 [32m/home/khalif/AymGprek/backend/khalif-backend/internal/adapters/repositories/auth/user/user_repo.go:36
+[0m[33m[0.767ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE "users"."id" = 1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+2026-01-06T23:01:25.700+0700	[34mINFO[0m	middleware/logger.go:27	request	{"status": 200, "method": "GET", "path": "/api/v1/users/auth/me", "query": "", "ip": "127.0.0.1", "user-agent": "Go-http-client/1.1", "request_id": "0364d9ba-7cea-48d0-a553-bf3e164105d3", "latency": "1.836741ms"}
+    user_journey_test.go:192: 
+        	Error Trace:	/home/khalif/AymGprek/backend/khalif-backend/tests/e2e/user_journey_test.go:192
+        	Error:      	Not equal: 
+        	            	expected: 401
+        	            	actual  : 200
+        	Test:       	TestE2E_UserJourney/7_VerifyLogout
+--- FAIL: TestE2E_UserJourney (0.36s)
+    --- PASS: TestE2E_UserJourney/1_Register (0.07s)
+    --- PASS: TestE2E_UserJourney/2_Login (0.06s)
+    --- PASS: TestE2E_UserJourney/3_GetMe (0.00s)
+    --- PASS: TestE2E_UserJourney/4_UpdateProfile (0.01s)
+    --- PASS: TestE2E_UserJourney/5_RefreshToken (0.01s)
+    --- PASS: TestE2E_UserJourney/6_Logout (0.00s)
+    --- FAIL: TestE2E_UserJourney/7_VerifyLogout (0.00s)
+FAIL
+FAIL	khalif-backend/tests/e2e	0.374s
+FAIL

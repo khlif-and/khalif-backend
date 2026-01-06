@@ -1,0 +1,20 @@
+# Binaries
+/bin/
+/dist/
+main
+main.exe
+
+# Config
+.env
+*.env
+
+# Vendor
+/vendor/
+
+# IDEs
+.idea/
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db
