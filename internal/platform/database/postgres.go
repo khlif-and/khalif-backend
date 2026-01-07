@@ -41,7 +41,7 @@ func InitDB(cfg *config.Config) *gorm.DB {
 func runMigrations(db *gorm.DB) {
 	appLogger.Log.Info("Running Auto-Migrations...")
 
-	err := db.AutoMigrate(&domain.Admin{}, &domain.AdminAuditLog{}, &domain.RefreshToken{})
+	err := db.AutoMigrate(&domain.Admin{}, &domain.AdminAuditLog{}, &domain.RefreshToken{}, &domain.User{}, &domain.UserAuditLog{}, &domain.UserRefreshToken{}, &domain.MoodCategory{}, &domain.Ustadz{}, &domain.Audio{}, &domain.Like{})
 	if err != nil {
 		appLogger.Log.Fatal("failed to auto-migrate tables", zap.Error(err))
 	}

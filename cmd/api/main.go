@@ -9,13 +9,25 @@ import (
 	"syscall"
 	"time"
 
+	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
+	likeHandler "khalif-backend/internal/adapters/handlers/like"
+	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	appRouter "khalif-backend/internal/adapters/http"
+	audioRepo "khalif-backend/internal/adapters/repositories/audio"
 	adminAuthRepo "khalif-backend/internal/adapters/repositories/auth/admin"
 	userAuthRepo "khalif-backend/internal/adapters/repositories/auth/user"
+	likeRepo "khalif-backend/internal/adapters/repositories/like"
+	moodCategoryRepo "khalif-backend/internal/adapters/repositories/mood_category"
+	ustadzRepo "khalif-backend/internal/adapters/repositories/ustadz"
+	audioService "khalif-backend/internal/core/services/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
+	likeService "khalif-backend/internal/core/services/like"
+	moodCategoryService "khalif-backend/internal/core/services/mood_category"
+	ustadzService "khalif-backend/internal/core/services/ustadz"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/database"
 	"khalif-backend/internal/platform/logger"
@@ -37,25 +49,34 @@ func main() {
 		logger.Log.Fatal(fmt.Sprintf("Failed to init upload dirs: %v", err))
 	}
 
-	// Repositories
 	adminRepo := adminAuthRepo.NewAdminRepo(db)
 	userRepo := userAuthRepo.NewUserRepo(db)
 	authRepo := adminAuthRepo.NewAuthRepo(db)
 	userAuthRepoInstance := userAuthRepo.NewAuthRepo(db)
+	audioRepoInstance := audioRepo.NewAudioRepo(db)
+	moodCategoryRepoInstance := moodCategoryRepo.NewMoodCategoryRepo(db)
+	ustadzRepoInstance := ustadzRepo.NewUstadzRepo(db)
+	likeRepoInstance := likeRepo.NewLikeRepo(db)
 
-	// Services
 	authService := adminAuthService.NewAuthService(adminRepo, authRepo, cfg)
 	adminService := adminAuthService.NewAdminService(adminRepo)
 	userAuthSvc := userAuthService.NewAuthService(userRepo, userAuthRepoInstance, cfg)
 	userService := userAuthService.NewUserService(userRepo)
+	audioSvc := audioService.NewAudioService(audioRepoInstance, moodCategoryRepoInstance, ustadzRepoInstance)
+	moodCategorySvc := moodCategoryService.NewMoodCategoryService(moodCategoryRepoInstance, audioRepoInstance)
+	ustadzSvc := ustadzService.NewUstadzService(ustadzRepoInstance)
+	likeSvc := likeService.NewLikeService(likeRepoInstance, audioRepoInstance)
 
-	// Handlers
 	authHandler := adminAuthHandler.NewAuthHandler(authService)
 	adminHandler := adminAuthHandler.NewAdminHandler(adminService)
 	userAuthHdlr := userAuthHandler.NewAuthHandler(userAuthSvc)
 	userHandler := userAuthHandler.NewUserHandler(userService)
+	audioHdlr := audioHandler.NewAudioHandler(audioSvc)
+	moodCategoryHdlr := moodCategoryHandler.NewMoodCategoryHandler(moodCategorySvc)
+	ustadzHdlr := ustadzHandler.NewUstadzHandler(ustadzSvc)
+	likeHdlr := likeHandler.NewLikeHandler(likeSvc)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler)
+	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 	srv := &http.Server{

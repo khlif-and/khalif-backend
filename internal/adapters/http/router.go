@@ -2,8 +2,12 @@ package http
 
 import (
 	"khalif-backend/internal/adapters/handlers"
+	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
+	likeHandler "khalif-backend/internal/adapters/handlers/like"
+	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/pkg/middleware"
 
@@ -16,6 +20,10 @@ func NewRouter(
 	adminHandler *adminAuthHandler.AdminHandler,
 	userAuthHdlr *userAuthHandler.AuthHandler,
 	userHandler *userAuthHandler.UserHandler,
+	audioHdlr *audioHandler.AudioHandler,
+	moodHdlr *moodCategoryHandler.MoodCategoryHandler,
+	ustadzHdlr *ustadzHandler.UstadzHandler,
+	likeHdlr *likeHandler.LikeHandler,
 ) *gin.Engine {
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -23,10 +31,9 @@ func NewRouter(
 
 	r := gin.New()
 
-	// Global Middleware
 	r.Use(gin.Recovery())
 	r.Use(middleware.CORSMiddleware())
-	r.Use(middleware.RequestIDMiddleware()) // Add RequestID before Logger
+	r.Use(middleware.RequestIDMiddleware())
 	r.Use(middleware.ZapLoggerMiddleware())
 
 	r.Static("/uploads", "./uploads")
@@ -56,6 +63,37 @@ func NewRouter(
 		admin.Use(middleware.AdminAuthMiddleware(cfg))
 		{
 			admin.PUT("/update", adminHandler.UpdateProfile)
+
+			admin.POST("/audio", audioHdlr.Create)
+			admin.PUT("/audio/:id", audioHdlr.Update)
+			admin.DELETE("/audio/:id", audioHdlr.Delete)
+
+			admin.POST("/mood-categories", moodHdlr.Create)
+			admin.PUT("/mood-categories/:id", moodHdlr.Update)
+			admin.DELETE("/mood-categories/:id", moodHdlr.Delete)
+
+			admin.POST("/ustadz", ustadzHdlr.Create)
+			admin.PUT("/ustadz/:id", ustadzHdlr.Update)
+			admin.DELETE("/ustadz/:id", ustadzHdlr.Delete)
+		}
+
+		audio := api.Group("/audio")
+		{
+			audio.GET("", audioHdlr.GetAll)
+			audio.GET("/:id", audioHdlr.GetByID)
+		}
+
+		moods := api.Group("/mood-categories")
+		{
+			moods.GET("", moodHdlr.GetAll)
+			moods.GET("/:id", moodHdlr.GetByID)
+			moods.GET("/:id/audios", moodHdlr.GetAudiosByMoodID)
+		}
+
+		ustadzGroup := api.Group("/ustadz")
+		{
+			ustadzGroup.GET("", ustadzHdlr.GetAll)
+			ustadzGroup.GET("/:id", ustadzHdlr.GetByID)
 		}
 	}
 
@@ -79,6 +117,12 @@ func NewRouter(
 	usersProtected.Use(middleware.UserAuthMiddleware(cfg))
 	{
 		usersProtected.PUT("/update", userHandler.UpdateProfile)
+		usersProtected.POST("/audio/:id/listen", audioHdlr.IncrementListeningCount)
+
+		usersProtected.POST("/audio/:id/like", likeHdlr.LikeAudio)
+		usersProtected.DELETE("/audio/:id/like", likeHdlr.UnlikeAudio)
+		usersProtected.GET("/audio/:id/is-liked", likeHdlr.IsLiked)
+		usersProtected.GET("/likes", likeHdlr.GetUserLikes)
 	}
 
 	return r

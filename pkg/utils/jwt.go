@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -87,8 +88,11 @@ func ValidateToken(tokenString string, secret string) (*JWTClaim, error) {
 func GenerateRandomString(n int) string {
 	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		panic("failed to generate secure random string: " + err.Error())
+	}
 	for i := range b {
-		b[i] = letters[time.Now().UnixNano()%int64(len(letters))]
+		b[i] = letters[b[i]%byte(len(letters))]
 	}
 	return string(b)
 }
