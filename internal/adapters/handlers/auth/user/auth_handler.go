@@ -6,7 +6,6 @@ import (
 	"khalif-backend/pkg/messages"
 	"khalif-backend/pkg/utils"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -27,27 +26,31 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if username == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrUsernameRequired})
 		return
 	}
 	if email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrEmailRequired})
 		return
 	}
-	if !isValidEmail(email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
+	if !utils.IsValidEmail(email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrInvalidEmail})
 		return
 	}
 	if phone == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "phone is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPhoneRequired})
 		return
 	}
 	if password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "password is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPasswordRequired})
 		return
 	}
 	if len(password) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 6 characters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPasswordTooShort})
+		return
+	}
+	if !utils.IsValidPhone(phone) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrInvalidPhone})
 		return
 	}
 
@@ -76,10 +79,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	resp, err := h.service.Register(req, userAgent, ipAddress)
 	if err != nil {
-		if err.Error() == messages.ErrAdminLimitReached {
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-			return
-		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -95,15 +94,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrEmailRequired})
 		return
 	}
-	if !isValidEmail(email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
+	if !utils.IsValidEmail(email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrInvalidEmail})
 		return
 	}
 	if password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "password is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPasswordRequired})
 		return
 	}
 
@@ -118,7 +117,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	resp, err := h.service.Login(req, userAgent, ipAddress)
 	if err != nil {
 		status := http.StatusUnauthorized
-		if err.Error() == "Account is locked" || err.Error() == "Account locked due to excessive failed attempts" {
+		if err.Error() == messages.ErrAccountLocked {
 			status = http.StatusForbidden
 		}
 		c.JSON(status, gin.H{"error": err.Error()})
@@ -148,7 +147,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Session refreshed successfully",
+		"message": messages.MsgRefreshTokenSuccess,
 		"data":    resp,
 	})
 }
@@ -184,9 +183,4 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": messages.MsgLogoutSuccess})
-}
-
-func isValidEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return emailRegex.MatchString(email)
 }

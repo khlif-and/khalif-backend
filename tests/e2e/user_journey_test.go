@@ -12,14 +12,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
+	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	appRouter "khalif-backend/internal/adapters/http"
 	adminAuthRepo "khalif-backend/internal/adapters/repositories/auth/admin"
 	userAuthRepo "khalif-backend/internal/adapters/repositories/auth/user"
+	audioRepo "khalif-backend/internal/adapters/repositories/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
+	audioService "khalif-backend/internal/core/services/audio"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/database"
 	"khalif-backend/internal/platform/logger"
+	"khalif-backend/internal/infrastructure/storage"
 	"khalif-backend/pkg/utils"
 	"os"
 )
@@ -43,25 +47,30 @@ func setupE2EServer(t *testing.T) *httptest.Server {
 	utils.InitUploadDirs()
 
 	// Clean State
-	db.Exec("TRUNCATE TABLE users, user_refresh_tokens RESTART IDENTITY CASCADE")
+	db.Exec("TRUNCATE TABLE users, user_refresh_tokens, admins, refresh_tokens, audios RESTART IDENTITY CASCADE")
 
 	// Dependencies
 	adminRepo := adminAuthRepo.NewAdminRepo(db)
 	userRepo := userAuthRepo.NewUserRepo(db)
 	authRepo := adminAuthRepo.NewAuthRepo(db)
 	userAuthRepoInstance := userAuthRepo.NewAuthRepo(db)
+	audioRepoInstance := audioRepo.NewAudioRepo(db)
+
+	storageProv := storage.NewLocalStorage()
 
 	authService := adminAuthService.NewAuthService(adminRepo, authRepo, cfg)
 	adminService := adminAuthService.NewAdminService(adminRepo)
 	userAuthSvc := userAuthService.NewAuthService(userRepo, userAuthRepoInstance, cfg)
 	userService := userAuthService.NewUserService(userRepo)
+	audioServiceInstance := audioService.NewAudioService(audioRepoInstance, storageProv)
 
 	authHandler := admin.NewAuthHandler(authService)
 	adminHandler := admin.NewAdminHandler(adminService)
 	userAuthHdlr := userAuthHandler.NewAuthHandler(userAuthSvc)
 	userHandler := userAuthHandler.NewUserHandler(userService)
+	audioHdlr := audioHandler.NewAudioHandler(audioServiceInstance)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler)
+	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr)
 
 	return httptest.NewServer(router)
 }

@@ -25,3 +25,36 @@ type UserAuthService interface {
 type UserService interface {
 	UpdateProfile(userID uint, req *domain.UpdateProfileRequest) (*domain.User, error)
 }
+
+type AudioService interface {
+	Create(req *domain.CreateAudioRequest) (*domain.Audio, error)
+	GetByUUID(uuid string) (*domain.Audio, error)
+	GetAll(page, limit int) (*domain.AudioListResponse, error)
+	Update(uuid string, req *domain.UpdateAudioRequest) (*domain.Audio, error)
+	Delete(uuid string) error
+	IncrementListeningCount(uuid string) error
+}
+
+type MoodCategoryService interface {
+	Create(req *domain.CreateMoodCategoryRequest) (*domain.MoodCategory, error)
+	GetByUUID(uuid string) (*domain.MoodCategory, error)
+	GetAll() (*domain.MoodCategoryListResponse, error)
+	GetAudiosByMoodUUID(moodUUID string, page, limit int) (*domain.AudioListResponse, error)
+	Update(uuid string, req *domain.UpdateMoodCategoryRequest) (*domain.MoodCategory, error)
+	Delete(uuid string) error
+}
+
+type UstadzService interface {
+	Create(req *domain.CreateUstadzRequest) (*domain.Ustadz, error)
+	GetByUUID(uuid string) (*domain.Ustadz, error)
+	GetAll() (*domain.UstadzListResponse, error)
+	Update(uuid string, req *domain.UpdateUstadzRequest) (*domain.Ustadz, error)
+	Delete(uuid string) error
+}
+
+type LikeService interface {
+	LikeAudio(userID uint, audioUUID string) (*domain.Like, error)
+	UnlikeAudio(userID uint, audioUUID string) error
+	GetUserLikes(userID uint) (*domain.LikeListResponse, error)
+	IsLiked(userID uint, audioUUID string) (bool, error)
+}
