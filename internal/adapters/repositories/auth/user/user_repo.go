@@ -56,3 +56,7 @@ func (r *UserRepo) FindByUsername(username string) (*domain.User, error) {
 func (r *UserRepo) Update(user *domain.User) error {
 	return r.db.Save(user).Error
 }
+
+func (r *UserRepo) ActivateUser(userID uint) error {
+	return r.db.Model(&domain.User{}).Where("id = ?", userID).Update("is_activated", true).Error
+}

@@ -194,3 +194,49 @@ func (s *audioService) IncrementListeningCount(uuid string) error {
 
 	return nil
 }
+
+// RecordListening records user listening via SP (prevents spam - 1 per user per audio per day)
+func (s *audioService) RecordListening(userID uint, audioUUID string) (alreadyListened bool, newCount int64, err error) {
+	audio, err := s.audioRepo.FindByUUID(audioUUID)
+	if err != nil {
+		logger.Log.Error("Failed to find audio for recording", zap.String("uuid", audioUUID), zap.Error(err))
+		return false, 0, errors.New(messages.ErrInternalServer)
+	}
+	if audio == nil {
+		return false, 0, errors.New(messages.ErrAudioNotFound)
+	}
+
+	already, count, err := s.audioRepo.RecordListening(userID, audio.ID)
+	if err != nil {
+		logger.Log.Error("Failed to record listening", zap.Uint("userID", userID), zap.String("audioUUID", audioUUID), zap.Error(err))
+		return false, 0, errors.New(messages.ErrInternalServer)
+	}
+
+	return already, count, nil
+}
+
+// GetUserListeningHistory returns paginated listening history for a user
+func (s *audioService) GetUserListeningHistory(userID uint, page, limit int) (*domain.ListeningHistoryResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	history, total, err := s.audioRepo.GetUserListeningHistory(userID, page, limit)
+	if err != nil {
+		logger.Log.Error("Failed to fetch listening history", zap.Uint("userID", userID), zap.Error(err))
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	return &domain.ListeningHistoryResponse{
+		History:    history,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}

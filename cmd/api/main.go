@@ -28,6 +28,7 @@ import (
 	likeService "khalif-backend/internal/core/services/like"
 	moodCategoryService "khalif-backend/internal/core/services/mood_category"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
+	"khalif-backend/internal/infrastructure/email"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/database"
 	"khalif-backend/internal/platform/logger"
@@ -60,7 +61,8 @@ func main() {
 
 	authService := adminAuthService.NewAuthService(adminRepo, authRepo, cfg)
 	adminService := adminAuthService.NewAdminService(adminRepo)
-	userAuthSvc := userAuthService.NewAuthService(userRepo, userAuthRepoInstance, cfg)
+	emailService := email.NewBrevoEmailService(cfg)
+	userAuthSvc := userAuthService.NewAuthService(userRepo, userAuthRepoInstance, emailService, cfg)
 	userService := userAuthService.NewUserService(userRepo)
 	audioSvc := audioService.NewAudioService(audioRepoInstance, moodCategoryRepoInstance, ustadzRepoInstance)
 	moodCategorySvc := moodCategoryService.NewMoodCategoryService(moodCategoryRepoInstance, audioRepoInstance)

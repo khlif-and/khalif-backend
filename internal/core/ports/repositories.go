@@ -30,6 +30,7 @@ type UserRepository interface {
 	FindByID(id uint) (*domain.User, error)
 	FindByUsername(username string) (*domain.User, error)
 	Update(user *domain.User) error
+	ActivateUser(userID uint) error
 }
 
 type UserAuthRepository interface {
@@ -40,6 +41,18 @@ type UserAuthRepository interface {
 	ValidateRefreshToken(tokenHash string) (uint, error)
 	RevokeRefreshToken(tokenHash string) error
 	RevokeAllUserTokens(userID uint) error
+
+	// OTP methods
+	StoreOTP(userID uint, otpCode string, expiresAt time.Time) error
+	ValidateOTP(email, otpCode string) (*domain.User, error)
+	MarkOTPUsed(userID uint) error
+	InvalidateOldOTPs(userID uint) error
+
+	// Password Reset methods
+	StorePasswordResetToken(userID uint, tokenHash string, expiresAt time.Time) error
+	ValidatePasswordResetToken(tokenHash string) (uint, error)
+	MarkPasswordResetTokenUsed(tokenHash string) error
+	InvalidateOldPasswordResetTokens(userID uint) error
 }
 
 type AudioRepository interface {
@@ -51,6 +64,9 @@ type AudioRepository interface {
 	Update(audio *domain.Audio) error
 	Delete(id uint) error
 	IncrementListeningCount(id uint) error
+	// Listening History with SP
+	RecordListening(userID, audioID uint) (alreadyListened bool, newCount int64, err error)
+	GetUserListeningHistory(userID uint, page, limit int) ([]domain.ListeningHistory, int64, error)
 }
 
 type MoodCategoryRepository interface {

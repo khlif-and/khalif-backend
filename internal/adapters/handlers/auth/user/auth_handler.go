@@ -74,18 +74,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		ProfilePicture: profilePicURL,
 	}
 
-	userAgent := c.GetHeader("User-Agent")
-	ipAddress := c.ClientIP()
-
-	resp, err := h.service.Register(req, userAgent, ipAddress)
+	err = h.service.Register(req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": messages.MsgRegisterSuccess,
-		"data":    resp,
+		"message": messages.MsgOTPSent,
 	})
 }
 
@@ -120,6 +116,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		if err.Error() == messages.ErrAccountLocked {
 			status = http.StatusForbidden
 		}
+		if err.Error() == messages.ErrAccountNotActivated {
+			status = http.StatusForbidden
+		}
 		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
@@ -127,6 +126,46 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": messages.MsgLoginSuccess,
 		"data":    resp,
+	})
+}
+
+func (h *AuthHandler) VerifyOTP(c *gin.Context) {
+	var req domain.VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrBadRequest})
+		return
+	}
+
+	userAgent := c.GetHeader("User-Agent")
+	ipAddress := c.ClientIP()
+
+	resp, err := h.service.VerifyOTP(&req, userAgent, ipAddress)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": messages.MsgAccountActivated,
+		"data":    resp,
+	})
+}
+
+func (h *AuthHandler) ResendOTP(c *gin.Context) {
+	var req domain.ResendOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrBadRequest})
+		return
+	}
+
+	err := h.service.ResendOTP(req.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": messages.MsgOTPResent,
 	})
 }
 
@@ -183,4 +222,44 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": messages.MsgLogoutSuccess})
+}
+
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var req domain.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrBadRequest})
+		return
+	}
+
+	if err := h.service.ForgotPassword(req.Email); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Always return success to prevent email enumeration
+	c.JSON(http.StatusOK, gin.H{
+		"message": messages.MsgPasswordResetSent,
+	})
+}
+
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var req domain.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrBadRequest})
+		return
+	}
+
+	if len(req.NewPassword) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPasswordTooShort})
+		return
+	}
+
+	if err := h.service.ResetPassword(req.Token, req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": messages.MsgPasswordResetSuccess,
+	})
 }
