@@ -39,6 +39,12 @@ const (
 
 	ErrLikeNotFound = "like not found"
 	ErrAlreadyLiked = "already liked this audio"
+
+	// OTP errors
+	ErrAccountNotActivated     = "account not activated, please verify your email"
+	ErrInvalidOTP              = "invalid or expired OTP"
+	ErrOTPAlreadyUsed          = "OTP has already been used"
+	ErrAccountAlreadyActivated = "account is already activated"
 )
 
 // Success Messages
@@ -65,4 +71,13 @@ const (
 
 	MsgLikeCreated = "audio liked successfully"
 	MsgLikeDeleted = "audio unliked successfully"
+
+	// OTP success
+	MsgOTPSent          = "registration successful, please check your email for OTP"
+	MsgOTPResent        = "OTP has been resent to your email"
+	MsgAccountActivated = "account activated successfully"
+
+	// Password Reset success
+	MsgPasswordResetSent    = "if the email exists, a password reset link has been sent"
+	MsgPasswordResetSuccess = "password has been reset successfully"
 )

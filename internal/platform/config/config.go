@@ -27,6 +27,11 @@ type Config struct {
 	RedisPort     string
 	RedisPassword string
 	RedisDB       int
+
+	// Brevo Email Service
+	BrevoAPIKey      string
+	BrevoSenderEmail string
+	BrevoSenderName  string
 }
 
 func LoadConfig() *Config {
@@ -53,6 +58,10 @@ func LoadConfig() *Config {
 		RedisPort:     getEnv("REDIS_PORT", "6379"),
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvAsInt("REDIS_DB", 0),
+
+		BrevoAPIKey:      getEnv("BREVO_API_KEY", ""),
+		BrevoSenderEmail: getEnv("BREVO_SENDER_EMAIL", "noreply@khalifapp.com"),
+		BrevoSenderName:  getEnv("BREVO_SENDER_NAME", "Khalif App"),
 	}
 }
 

@@ -32,3 +32,23 @@ type UpdateProfileRequest struct {
 	Phone          string `json:"phone"`
 	ProfilePicture string `json:"profile_picture"`
 }
+
+// OTP Verification DTOs
+type VerifyOTPRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	OTP   string `json:"otp" binding:"required,len=6"`
+}
+
+type ResendOTPRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// Forgot Password DTOs
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}

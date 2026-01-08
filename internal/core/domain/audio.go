@@ -56,3 +56,20 @@ type AudioListResponse struct {
 	Limit      int     `json:"limit"`
 	TotalPages int     `json:"total_pages"`
 }
+
+// ListeningHistory tracks which users listened to which audios
+type ListeningHistory struct {
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	UserID     uint      `gorm:"not null;index" json:"user_id"`
+	AudioID    uint      `gorm:"not null;index" json:"audio_id"`
+	Audio      *Audio    `gorm:"foreignKey:AudioID" json:"audio,omitempty"`
+	ListenedAt time.Time `gorm:"autoCreateTime" json:"listened_at"`
+}
+
+type ListeningHistoryResponse struct {
+	History    []ListeningHistory `json:"history"`
+	Total      int64              `json:"total"`
+	Page       int                `json:"page"`
+	Limit      int                `json:"limit"`
+	TotalPages int                `json:"total_pages"`
+}

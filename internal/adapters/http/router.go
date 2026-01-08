@@ -101,9 +101,13 @@ func NewRouter(
 	usersAuth := users.Group("/auth")
 	usersAuth.Use(middleware.RateLimitMiddleware(cfg))
 	{
-		usersAuth.POST("/register", userAuthHdlr.Register)
+	usersAuth.POST("/register", userAuthHdlr.Register)
 		usersAuth.POST("/login", userAuthHdlr.Login)
 		usersAuth.POST("/refresh", userAuthHdlr.RefreshToken)
+		usersAuth.POST("/verify-otp", userAuthHdlr.VerifyOTP)
+		usersAuth.POST("/resend-otp", userAuthHdlr.ResendOTP)
+		usersAuth.POST("/forgot-password", userAuthHdlr.ForgotPassword)
+		usersAuth.POST("/reset-password", userAuthHdlr.ResetPassword)
 		
 		usersProtected := usersAuth.Group("/")
 		usersProtected.Use(middleware.UserAuthMiddleware(cfg))
@@ -118,6 +122,7 @@ func NewRouter(
 	{
 		usersProtected.PUT("/update", userHandler.UpdateProfile)
 		usersProtected.POST("/audio/:id/listen", audioHdlr.IncrementListeningCount)
+		usersProtected.GET("/listening-history", audioHdlr.GetListeningHistory)
 
 		usersProtected.POST("/audio/:id/like", likeHdlr.LikeAudio)
 		usersProtected.DELETE("/audio/:id/like", likeHdlr.UnlikeAudio)

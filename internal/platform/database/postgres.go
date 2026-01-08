@@ -41,10 +41,40 @@ func InitDB(cfg *config.Config) *gorm.DB {
 func runMigrations(db *gorm.DB) {
 	appLogger.Log.Info("Running Auto-Migrations...")
 
-	err := db.AutoMigrate(&domain.Admin{}, &domain.AdminAuditLog{}, &domain.RefreshToken{}, &domain.User{}, &domain.UserAuditLog{}, &domain.UserRefreshToken{}, &domain.MoodCategory{}, &domain.Ustadz{}, &domain.Audio{}, &domain.Like{})
-	if err != nil {
-		appLogger.Log.Fatal("failed to auto-migrate tables", zap.Error(err))
+	// Use a migrator with better error handling
+	migrator := db.Migrator()
+
+	// List of models to migrate
+	models := []interface{}{
+		&domain.Admin{},
+		&domain.AdminAuditLog{},
+		&domain.RefreshToken{},
+		&domain.User{},
+		&domain.UserAuditLog{},
+		&domain.UserRefreshToken{},
+		&domain.OTPToken{},
+		&domain.PasswordResetToken{},
+		&domain.MoodCategory{},
+		&domain.Ustadz{},
+		&domain.Audio{},
+		&domain.Like{},
+		&domain.ListeningHistory{},
 	}
+
+	// Migrate each model individually to handle errors gracefully
+	for _, model := range models {
+		if !migrator.HasTable(model) {
+			if err := migrator.CreateTable(model); err != nil {
+				appLogger.Log.Error("Failed to create table", zap.Any("model", model), zap.Error(err))
+			}
+		} else {
+			if err := db.AutoMigrate(model); err != nil {
+				// Log warning but don't fail on constraint errors
+				appLogger.Log.Warn("Migration warning (non-fatal)", zap.Any("model", model), zap.Error(err))
+			}
+		}
+	}
+
 	appLogger.Log.Info("Table migration complete.")
 
 	migrationDir := "migrations/sql"

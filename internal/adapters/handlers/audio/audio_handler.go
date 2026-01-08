@@ -193,13 +193,46 @@ func (h *AudioHandler) Delete(c *gin.Context) {
 
 func (h *AudioHandler) IncrementListeningCount(c *gin.Context) {
 	uuid := c.Param("id")
+	
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": messages.ErrUnauthorized})
+		return
+	}
 
-	if err := h.service.IncrementListeningCount(uuid); err != nil {
+	alreadyListened, newCount, err := h.service.RecordListening(userID.(uint), uuid)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": messages.MsgListeningCountIncremented,
+		"message":          messages.MsgListeningCountIncremented,
+		"already_listened": alreadyListened,
+		"listening_count":  newCount,
+	})
+}
+
+func (h *AudioHandler) GetListeningHistory(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": messages.ErrUnauthorized})
+		return
+	}
+
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	response, err := h.service.GetUserListeningHistory(userID.(uint), page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": response,
 	})
 }

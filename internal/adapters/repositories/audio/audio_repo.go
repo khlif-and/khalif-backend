@@ -90,3 +90,38 @@ func (r *AudioRepo) Delete(id uint) error {
 func (r *AudioRepo) IncrementListeningCount(id uint) error {
 	return r.db.Model(&domain.Audio{}).Where("id = ?", id).UpdateColumn("listening_count", gorm.Expr("listening_count + ?", 1)).Error
 }
+
+// RecordListening uses stored procedure to record listening and prevent spam
+func (r *AudioRepo) RecordListening(userID, audioID uint) (alreadyListened bool, newCount int64, err error) {
+	var already bool
+	var count int64
+
+	row := r.db.Raw("SELECT * FROM sp_record_listening($1, $2)", userID, audioID).Row()
+	if err := row.Scan(&already, &count); err != nil {
+		return false, 0, err
+	}
+
+	return already, count, nil
+}
+
+// GetUserListeningHistory returns paginated listening history for a user
+func (r *AudioRepo) GetUserListeningHistory(userID uint, page, limit int) ([]domain.ListeningHistory, int64, error) {
+	var history []domain.ListeningHistory
+	var total int64
+
+	if err := r.db.Model(&domain.ListeningHistory{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+
+	if err := r.db.Preload("Audio").Preload("Audio.MoodCategory").Preload("Audio.Ustadz").
+		Where("user_id = ?", userID).
+		Order("listened_at DESC").
+		Offset(offset).Limit(limit).
+		Find(&history).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return history, total, nil
+}
