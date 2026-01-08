@@ -149,6 +149,13 @@ func (s *authService) VerifyOTP(req *domain.VerifyOTPRequest, userAgent, ipAddre
 		return nil, errors.New(messages.ErrInternalServer)
 	}
 
+	// Send welcome email
+	go func() {
+		if err := s.emailService.SendWelcome(user.Email, user.Username); err != nil {
+			logger.Log.Error("Failed to send welcome email", zap.String("email", user.Email), zap.Error(err))
+		}
+	}()
+
 	logger.Log.Info("User verified and activated", zap.String("email", user.Email))
 
 	return &domain.LoginResponse{

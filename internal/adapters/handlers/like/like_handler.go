@@ -4,6 +4,7 @@ import (
 	"khalif-backend/internal/core/ports"
 	"khalif-backend/pkg/messages"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -63,7 +64,12 @@ func (h *LikeHandler) GetUserLikes(c *gin.Context) {
 		return
 	}
 
-	response, err := h.service.GetUserLikes(userID.(uint))
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	response, err := h.service.GetUserLikes(userID.(uint), page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return

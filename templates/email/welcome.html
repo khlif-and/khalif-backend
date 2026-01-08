@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Datang</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-width: 100%;
+            background-color: #F2F4F6;
+        }
+
+        table {
+            border-spacing: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1F2937;
+        }
+
+        td {
+            padding: 0;
+        }
+
+        img {
+            border: 0;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .outer {
+                width: 90% !important;
+                max-width: 100% !important;
+            }
+
+            .content-padding {
+                padding: 30px 20px !important;
+            }
+
+            .hero-img {
+                height: auto !important;
+                width: 100% !important;
+                border-radius: 16px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #F2F4F6;">
+    <center class="wrapper" style="width: 100%; table-layout: fixed; background-color: #F2F4F6; padding-bottom: 40px;">
+        <div style="max-width: 480px; margin: 0 auto;">
+            <table align="center" style="margin: 40px auto 20px auto; width: 100%; text-align: center;">
+                <tr>
+                    <td>
+                        <img src="https://via.placeholder.com/120x40/F2F4F6/5A8F7B?text=KHALIF" width="120" alt="Khalif"
+                            style="display: block; margin: auto; font-weight: bold;">
+                    </td>
+                </tr>
+            </table>
+            <table class="outer" align="center"
+                style="background-color: #ffffff; width: 100%; max-width: 480px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <tr>
+                    <td class="content-padding" style="padding: 40px 30px;">
+                        <table width="100%">
+                            <tr>
+                                <td align="center" style="padding-bottom: 25px;">
+                                    <img src="https://i.pinimg.com/736x/2f/d7/78/2fd77857ff27c28435983422dba20cde.jpg"
+                                        class="hero-img" width="420"
+                                        style="display: block; max-width: 100%; height: auto; border-radius: 16px; object-fit: cover;"
+                                        alt="Welcome">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-bottom: 15px;">
+                                    <h2
+                                        style="font-size: 22px; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.5px;">
+                                        Ahlan Wa Sahlan 👋</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-bottom: 30px;">
+                                    <p style="font-size: 15px; color: #6B7280; line-height: 26px; margin: 0;">
+                                        Assalamu'alaikum, <strong>{{.Username}}</strong>! <br><br>
+                                        Alhamdulillah, akun kamu udah aktif nih. Seneng banget kamu gabung di
+                                        <strong>Khalif Apps</strong>. Yuk, mulai hari yang produktif bareng kita!
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center">
+                                    <table border="0" cellspacing="0" cellpadding="0" width="100%">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="#" target="_blank" class="btn-primary"
+                                                    style="font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; padding: 18px 40px; border-radius: 50px; background-color: #5A8F7B; display: inline-block; font-weight: bold; width: auto; min-width: 150px; text-align: center; box-shadow: 0 4px 15px rgba(90, 143, 123, 0.2);">
+                                                    Mulai Jelajahi
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <table align="center" style="margin-top: 25px; width: 100%; max-width: 480px;">
+                <tr>
+                    <td align="center">
+                        <div style="padding: 0 20px;">
+                            <a href="#" style="text-decoration: none; margin: 0 5px;"><img
+                                    src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="18" alt="IG"
+                                    style="opacity: 0.4;"></a>
+                            <a href="#" style="text-decoration: none; margin: 0 5px;"><img
+                                    src="https://cdn-icons-png.flaticon.com/512/2111/2111679.png" width="18" alt="X"
+                                    style="opacity: 0.4;"></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding-top: 15px;">
+                        <p style="font-size: 11px; color: #D1D5DB; margin: 0; font-weight: 600; letter-spacing: 0.5px;">
+                            © 2026 KHALIF APPS
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </center>
+</body>
+
+</html>

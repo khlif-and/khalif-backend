@@ -80,4 +80,14 @@ const (
 	// Password Reset success
 	MsgPasswordResetSent    = "if the email exists, a password reset link has been sent"
 	MsgPasswordResetSuccess = "password has been reset successfully"
+
+	// Email Subjects
+	EmailSubjectOTP           = "Kode Masuk - Khalif App"
+	EmailSubjectPasswordReset = "Reset Password - Khalif App"
+	EmailSubjectWelcome       = "Selamat Datang di Khalif App 🎉"
+
+	// Email Template Names
+	EmailTemplateOTP           = "otp.html"
+	EmailTemplatePasswordReset = "password_reset.html"
+	EmailTemplateWelcome       = "welcome.html"
 )

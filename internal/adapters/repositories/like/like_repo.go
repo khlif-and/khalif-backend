@@ -39,13 +39,16 @@ func (r *likeRepo) FindByUserAndAudio(userID, audioID uint) (*domain.Like, error
 	return &like, err
 }
 
-func (r *likeRepo) FindByUserID(userID uint) ([]domain.Like, int64, error) {
+func (r *likeRepo) FindByUserID(userID uint, page, limit int) ([]domain.Like, int64, error) {
 	var likes []domain.Like
 	var total int64
 
 	r.db.Model(&domain.Like{}).Where("user_id = ?", userID).Count(&total)
+
+	offset := (page - 1) * limit
 	err := r.db.Preload("Audio").Preload("Audio.Ustadz").Preload("Audio.MoodCategory").
-		Where("user_id = ?", userID).Order("created_at DESC").Find(&likes).Error
+		Where("user_id = ?", userID).Order("created_at DESC").
+		Offset(offset).Limit(limit).Find(&likes).Error
 
 	return likes, total, err
 }

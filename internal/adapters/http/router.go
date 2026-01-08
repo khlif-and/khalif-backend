@@ -7,6 +7,7 @@ import (
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
 	likeHandler "khalif-backend/internal/adapters/handlers/like"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	searchHandler "khalif-backend/internal/adapters/handlers/search"
 	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/pkg/middleware"
@@ -24,6 +25,7 @@ func NewRouter(
 	moodHdlr *moodCategoryHandler.MoodCategoryHandler,
 	ustadzHdlr *ustadzHandler.UstadzHandler,
 	likeHdlr *likeHandler.LikeHandler,
+	searchHdlr *searchHandler.SearchHandler,
 ) *gin.Engine {
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -94,6 +96,15 @@ func NewRouter(
 		{
 			ustadzGroup.GET("", ustadzHdlr.GetAll)
 			ustadzGroup.GET("/:id", ustadzHdlr.GetByID)
+		}
+
+		// Search routes (public)
+		search := api.Group("/search")
+		{
+			search.GET("", searchHdlr.SearchAll)
+			search.GET("/audio", searchHdlr.SearchAudios)
+			search.GET("/ustadz", searchHdlr.SearchUstadzs)
+			search.GET("/mood", searchHdlr.SearchMoodCategories)
 		}
 	}
 

@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
+	"path/filepath"
+	"sync"
 
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/logger"
+	"khalif-backend/pkg/messages"
 
 	"go.uber.org/zap"
 )
@@ -16,25 +20,49 @@ import (
 type EmailService interface {
 	SendOTP(toEmail, toName, otpCode string) error
 	SendPasswordReset(toEmail, toName, resetToken string) error
+	SendWelcome(toEmail, username string) error
 }
 
 // BrevoEmailService implements EmailService using Brevo API
 type BrevoEmailService struct {
-	apiKey      string
-	senderEmail string
-	senderName  string
+	apiKey       string
+	apiURL       string
+	senderEmail  string
+	senderName   string
+	templatePath string
+	templates    map[string]*template.Template
+	templateMu   sync.RWMutex
 }
 
-// NewBrevoEmailService creates a new Brevo email service
+// NewBrevoEmailService creates a new Brevo email service with template caching
 func NewBrevoEmailService(cfg *config.Config) EmailService {
-	return &BrevoEmailService{
-		apiKey:      cfg.BrevoAPIKey,
-		senderEmail: cfg.BrevoSenderEmail,
-		senderName:  cfg.BrevoSenderName,
+	service := &BrevoEmailService{
+		apiKey:       cfg.BrevoAPIKey,
+		apiURL:       cfg.BrevoAPIURL,
+		senderEmail:  cfg.BrevoSenderEmail,
+		senderName:   cfg.BrevoSenderName,
+		templatePath: cfg.EmailTemplatePath,
+		templates:    make(map[string]*template.Template),
 	}
+
+	// Pre-load templates at startup
+	templateNames := []string{
+		messages.EmailTemplateOTP,
+		messages.EmailTemplatePasswordReset,
+		messages.EmailTemplateWelcome,
+	}
+
+	for _, name := range templateNames {
+		if err := service.cacheTemplate(name); err != nil {
+			logger.Log.Warn("Failed to pre-cache email template", zap.String("template", name), zap.Error(err))
+		}
+	}
+
+	logger.Log.Info("Email service initialized with template caching", zap.Int("cached_templates", len(service.templates)))
+	return service
 }
 
-// BrevoEmailRequest represents the Brevo API request structure
+// BrevoEmailRequest represents the Brevo API request with custom HTML
 type BrevoEmailRequest struct {
 	Sender      BrevoContact   `json:"sender"`
 	To          []BrevoContact `json:"to"`
@@ -48,44 +76,79 @@ type BrevoContact struct {
 	Name  string `json:"name,omitempty"`
 }
 
-// SendOTP sends OTP verification email via Brevo
-func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
-	htmlContent := fmt.Sprintf(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
-    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 30px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Khalif App</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">Email Verification</p>
-        </div>
-        <div style="padding: 40px 30px; text-align: center;">
-            <p style="color: #333; font-size: 16px; margin-bottom: 30px;">
-                Halo <strong>%s</strong>,<br><br>
-                Gunakan kode OTP berikut untuk verifikasi akun Anda:
-            </p>
-            <div style="background-color: #f8f9fa; border: 2px dashed #667eea; border-radius: 10px; padding: 20px; margin: 20px 0;">
-                <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #667eea;">%s</span>
-            </div>
-            <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Kode ini berlaku selama <strong>10 menit</strong>.<br>
-                Jangan bagikan kode ini kepada siapapun.
-            </p>
-        </div>
-        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-            <p style="color: #999; font-size: 12px; margin: 0;">
-                © 2026 Khalif App. All rights reserved.
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-`, toName, otpCode)
+// OTPData holds data for OTP email template
+type OTPData struct {
+	OTPCode string
+}
 
+// PasswordResetData holds data for password reset email template
+type PasswordResetData struct {
+	Username   string
+	ResetToken string
+}
+
+// WelcomeData holds data for welcome email template
+type WelcomeData struct {
+	Username string
+}
+
+// cacheTemplate loads and caches a template
+func (s *BrevoEmailService) cacheTemplate(templateName string) error {
+	templateFile := filepath.Join(s.templatePath, templateName)
+
+	tmpl, err := template.ParseFiles(templateFile)
+	if err != nil {
+		return fmt.Errorf("failed to parse template %s: %w", templateName, err)
+	}
+
+	s.templateMu.Lock()
+	s.templates[templateName] = tmpl
+	s.templateMu.Unlock()
+
+	return nil
+}
+
+// getTemplate gets a cached template or loads it if not cached
+func (s *BrevoEmailService) getTemplate(templateName string) (*template.Template, error) {
+	s.templateMu.RLock()
+	tmpl, exists := s.templates[templateName]
+	s.templateMu.RUnlock()
+
+	if exists {
+		return tmpl, nil
+	}
+
+	// Template not cached, load it
+	if err := s.cacheTemplate(templateName); err != nil {
+		return nil, err
+	}
+
+	s.templateMu.RLock()
+	tmpl = s.templates[templateName]
+	s.templateMu.RUnlock()
+
+	return tmpl, nil
+}
+
+// executeTemplate executes a cached template with data
+func (s *BrevoEmailService) executeTemplate(templateName string, data interface{}) (string, error) {
+	tmpl, err := s.getTemplate(templateName)
+	if err != nil {
+		logger.Log.Error("Failed to get template", zap.String("template", templateName), zap.Error(err))
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		logger.Log.Error("Failed to execute template", zap.String("template", templateName), zap.Error(err))
+		return "", fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return buf.String(), nil
+}
+
+// sendEmail sends an email via Brevo API
+func (s *BrevoEmailService) sendEmail(toEmail, toName, subject, htmlContent string) error {
 	reqBody := BrevoEmailRequest{
 		Sender: BrevoContact{
 			Email: s.senderEmail,
@@ -94,7 +157,7 @@ func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
 		To: []BrevoContact{
 			{Email: toEmail, Name: toName},
 		},
-		Subject:     fmt.Sprintf("Kode Verifikasi Khalif App: %s", otpCode),
+		Subject:     subject,
 		HTMLContent: htmlContent,
 	}
 
@@ -104,7 +167,7 @@ func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
 		return fmt.Errorf("failed to prepare email: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.brevo.com/v3/smtp/email", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", s.apiURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		logger.Log.Error("Failed to create HTTP request", zap.Error(err))
 		return fmt.Errorf("failed to create request: %w", err)
@@ -125,6 +188,22 @@ func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
 	if resp.StatusCode >= 400 {
 		logger.Log.Error("Brevo API returned error", zap.Int("status_code", resp.StatusCode))
 		return fmt.Errorf("email service returned error: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// SendOTP sends OTP verification email via Brevo
+func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
+	data := OTPData{OTPCode: otpCode}
+
+	htmlContent, err := s.executeTemplate(messages.EmailTemplateOTP, data)
+	if err != nil {
+		return err
+	}
+
+	if err := s.sendEmail(toEmail, toName, messages.EmailSubjectOTP, htmlContent); err != nil {
+		return err
 	}
 
 	logger.Log.Info("OTP email sent successfully", zap.String("to", toEmail))
@@ -133,86 +212,37 @@ func (s *BrevoEmailService) SendOTP(toEmail, toName, otpCode string) error {
 
 // SendPasswordReset sends password reset email via Brevo
 func (s *BrevoEmailService) SendPasswordReset(toEmail, toName, resetToken string) error {
-	htmlContent := fmt.Sprintf(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
-    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #e74c3c 0%%, #c0392b 100%%); padding: 30px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Khalif App</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">Password Reset</p>
-        </div>
-        <div style="padding: 40px 30px; text-align: center;">
-            <p style="color: #333; font-size: 16px; margin-bottom: 30px;">
-                Halo <strong>%s</strong>,<br><br>
-                Anda menerima email ini karena ada permintaan reset password untuk akun Anda.
-            </p>
-            <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
-                Gunakan token berikut untuk reset password:
-            </p>
-            <div style="background-color: #f8f9fa; border: 2px dashed #e74c3c; border-radius: 10px; padding: 20px; margin: 20px 0; word-break: break-all;">
-                <span style="font-size: 14px; font-weight: bold; color: #e74c3c;">%s</span>
-            </div>
-            <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Token ini berlaku selama <strong>30 menit</strong>.<br>
-                Jika Anda tidak meminta reset password, abaikan email ini.
-            </p>
-        </div>
-        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-            <p style="color: #999; font-size: 12px; margin: 0;">
-                © 2026 Khalif App. All rights reserved.
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-`, toName, resetToken)
-
-	reqBody := BrevoEmailRequest{
-		Sender: BrevoContact{
-			Email: s.senderEmail,
-			Name:  s.senderName,
-		},
-		To: []BrevoContact{
-			{Email: toEmail, Name: toName},
-		},
-		Subject:     "Reset Password - Khalif App",
-		HTMLContent: htmlContent,
+	data := PasswordResetData{
+		Username:   toName,
+		ResetToken: resetToken,
 	}
 
-	jsonBody, err := json.Marshal(reqBody)
+	htmlContent, err := s.executeTemplate(messages.EmailTemplatePasswordReset, data)
 	if err != nil {
-		logger.Log.Error("Failed to marshal email request", zap.Error(err))
-		return fmt.Errorf("failed to prepare email: %w", err)
+		return err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.brevo.com/v3/smtp/email", bytes.NewBuffer(jsonBody))
-	if err != nil {
-		logger.Log.Error("Failed to create HTTP request", zap.Error(err))
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("api-key", s.apiKey)
-	req.Header.Set("content-type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Log.Error("Failed to send email via Brevo", zap.Error(err))
-		return fmt.Errorf("failed to send email: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		logger.Log.Error("Brevo API returned error", zap.Int("status_code", resp.StatusCode))
-		return fmt.Errorf("email service returned error: %d", resp.StatusCode)
+	if err := s.sendEmail(toEmail, toName, messages.EmailSubjectPasswordReset, htmlContent); err != nil {
+		return err
 	}
 
 	logger.Log.Info("Password reset email sent successfully", zap.String("to", toEmail))
+	return nil
+}
+
+// SendWelcome sends welcome email after account activation
+func (s *BrevoEmailService) SendWelcome(toEmail, username string) error {
+	data := WelcomeData{Username: username}
+
+	htmlContent, err := s.executeTemplate(messages.EmailTemplateWelcome, data)
+	if err != nil {
+		return err
+	}
+
+	if err := s.sendEmail(toEmail, username, messages.EmailSubjectWelcome, htmlContent); err != nil {
+		return err
+	}
+
+	logger.Log.Info("Welcome email sent successfully", zap.String("to", toEmail))
 	return nil
 }

@@ -29,9 +29,15 @@ type Config struct {
 	RedisDB       int
 
 	// Brevo Email Service
-	BrevoAPIKey      string
-	BrevoSenderEmail string
-	BrevoSenderName  string
+	BrevoAPIKey       string
+	BrevoAPIURL       string
+	BrevoSenderEmail  string
+	BrevoSenderName   string
+	EmailTemplatePath string
+
+	// Meilisearch
+	MeilisearchHost   string
+	MeilisearchAPIKey string
 }
 
 func LoadConfig() *Config {
@@ -59,9 +65,14 @@ func LoadConfig() *Config {
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvAsInt("REDIS_DB", 0),
 
-		BrevoAPIKey:      getEnv("BREVO_API_KEY", ""),
-		BrevoSenderEmail: getEnv("BREVO_SENDER_EMAIL", "noreply@khalifapp.com"),
-		BrevoSenderName:  getEnv("BREVO_SENDER_NAME", "Khalif App"),
+		BrevoAPIKey:       getEnv("BREVO_API_KEY", ""),
+		BrevoAPIURL:       getEnv("BREVO_API_URL", "https://api.brevo.com/v3/smtp/email"),
+		BrevoSenderEmail:  getEnv("BREVO_SENDER_EMAIL", "noreply@khalifapp.com"),
+		BrevoSenderName:   getEnv("BREVO_SENDER_NAME", "Khalif App"),
+		EmailTemplatePath: getEnv("EMAIL_TEMPLATE_PATH", "templates/email"),
+
+		MeilisearchHost:   getEnv("MEILISEARCH_HOST", "http://localhost:7700"),
+		MeilisearchAPIKey: getEnv("MEILISEARCH_API_KEY", ""),
 	}
 }
 

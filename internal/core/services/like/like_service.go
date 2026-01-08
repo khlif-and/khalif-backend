@@ -2,6 +2,7 @@ package like
 
 import (
 	"errors"
+	"math"
 
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
@@ -88,16 +89,28 @@ func (s *likeService) UnlikeAudio(userID uint, audioUUID string) error {
 	return nil
 }
 
-func (s *likeService) GetUserLikes(userID uint) (*domain.LikeListResponse, error) {
-	likes, total, err := s.likeRepo.FindByUserID(userID)
+func (s *likeService) GetUserLikes(userID uint, page, limit int) (*domain.LikeListResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	likes, total, err := s.likeRepo.FindByUserID(userID, page, limit)
 	if err != nil {
 		logger.Log.Error("Failed to fetch user likes", zap.Uint("user_id", userID), zap.Error(err))
 		return nil, errors.New(messages.ErrInternalServer)
 	}
 
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
 	return &domain.LikeListResponse{
-		Likes: likes,
-		Total: total,
+		Likes:      likes,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
 	}, nil
 }
 

@@ -46,12 +46,14 @@ func (r *ustadzRepo) FindByName(name string) (*domain.Ustadz, error) {
 	return &ustadz, err
 }
 
-func (r *ustadzRepo) FindAll() ([]domain.Ustadz, int64, error) {
+func (r *ustadzRepo) FindAll(page, limit int) ([]domain.Ustadz, int64, error) {
 	var ustadzList []domain.Ustadz
 	var total int64
 
 	r.db.Model(&domain.Ustadz{}).Count(&total)
-	err := r.db.Find(&ustadzList).Error
+
+	offset := (page - 1) * limit
+	err := r.db.Order("created_at DESC").Offset(offset).Limit(limit).Find(&ustadzList).Error
 
 	return ustadzList, total, err
 }

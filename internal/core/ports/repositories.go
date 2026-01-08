@@ -74,7 +74,7 @@ type MoodCategoryRepository interface {
 	FindByID(id uint) (*domain.MoodCategory, error)
 	FindByUUID(uuid string) (*domain.MoodCategory, error)
 	FindByName(name string) (*domain.MoodCategory, error)
-	FindAll() ([]domain.MoodCategory, int64, error)
+	FindAll(page, limit int) ([]domain.MoodCategory, int64, error)
 	Update(mood *domain.MoodCategory) error
 	Delete(id uint) error
 }
@@ -84,7 +84,7 @@ type UstadzRepository interface {
 	FindByID(id uint) (*domain.Ustadz, error)
 	FindByUUID(uuid string) (*domain.Ustadz, error)
 	FindByName(name string) (*domain.Ustadz, error)
-	FindAll() ([]domain.Ustadz, int64, error)
+	FindAll(page, limit int) ([]domain.Ustadz, int64, error)
 	Update(ustadz *domain.Ustadz) error
 	Delete(id uint) error
 }
@@ -93,7 +93,7 @@ type LikeRepository interface {
 	Create(like *domain.Like) error
 	FindByUUID(uuid string) (*domain.Like, error)
 	FindByUserAndAudio(userID, audioID uint) (*domain.Like, error)
-	FindByUserID(userID uint) ([]domain.Like, int64, error)
+	FindByUserID(userID uint, page, limit int) ([]domain.Like, int64, error)
 	Delete(id uint) error
 	IncrementAudioLikeCount(audioID uint) error
 	DecrementAudioLikeCount(audioID uint) error

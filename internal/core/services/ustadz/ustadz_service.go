@@ -2,6 +2,7 @@ package ustadz
 
 import (
 	"errors"
+	"math"
 
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
@@ -59,16 +60,28 @@ func (s *ustadzService) GetByUUID(uuid string) (*domain.Ustadz, error) {
 	return ustadz, nil
 }
 
-func (s *ustadzService) GetAll() (*domain.UstadzListResponse, error) {
-	ustadzList, total, err := s.ustadzRepo.FindAll()
+func (s *ustadzService) GetAll(page, limit int) (*domain.UstadzListResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	ustadzList, total, err := s.ustadzRepo.FindAll(page, limit)
 	if err != nil {
 		logger.Log.Error("Failed to fetch ustadz list", zap.Error(err))
 		return nil, errors.New(messages.ErrInternalServer)
 	}
 
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
 	return &domain.UstadzListResponse{
 		UstadzList: ustadzList,
 		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
 	}, nil
 }
 

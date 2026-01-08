@@ -5,9 +5,12 @@ A production-ready authentication microservice built with Go, following Clean Ar
 ## 🚀 Features
 
 - **Authentication**: Register, Login, Logout with JWT tokens
+- **OTP Email Verification**: Brevo integration for email verification before login
+- **Forgot Password**: Secure password reset via email token
 - **Rolling Refresh Tokens**: Secure session management with automatic token rotation
 - **Rate Limiting**: Redis-based rate limiting for auth endpoints
 - **Account Lockout**: Automatic account lock after failed login attempts
+- **Listening History**: Track user listening with SP-based spam prevention
 - **Profile Picture Upload**: Multipart form upload with automatic fallback to initials avatar
 - **Health Checks**: `/health` and `/ready` endpoints for container orchestration
 - **Graceful Shutdown**: Proper cleanup of database and Redis connections
@@ -26,6 +29,8 @@ A production-ready authentication microservice built with Go, following Clean Ar
 │   │   ├── domain/       # Entities & DTOs
 │   │   ├── ports/        # Interfaces (contracts)
 │   │   └── services/     # Business logic
+│   ├── infrastructure/
+│   │   └── email/        # Brevo email service
 │   └── platform/
 │       ├── config/       # Configuration
 │       ├── database/     # DB & Redis connections
@@ -47,6 +52,7 @@ A production-ready authentication microservice built with Go, following Clean Ar
 - **Database**: PostgreSQL with GORM
 - **Cache**: Redis
 - **Auth**: JWT (Access + Refresh tokens)
+- **Email**: Brevo (Sendinblue)
 - **Logging**: Zap
 - **Testing**: testify
 
@@ -77,6 +83,11 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
+
+# Brevo Email Service
+BREVO_API_KEY=your_brevo_api_key
+BREVO_SENDER_EMAIL=your@email.com
+BREVO_SENDER_NAME=Khalif App
 ```
 
 ## 🚀 Running the Application
@@ -98,31 +109,63 @@ go test ./tests/integration/...
 
 ## 📡 API Endpoints
 
-### Public Endpoints
+### Health & Public
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
 | GET | `/ready` | Readiness check (DB & Redis) |
-| POST | `/api/v1/auth/register` | Register new admin (multipart) |
-| POST | `/api/v1/auth/login` | Login (multipart) |
-| POST | `/api/v1/auth/refresh` | Refresh access token (JSON) |
 
-### Protected Endpoints (Bearer Token Required)
+### Admin Auth (`/api/v1/auth`)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/auth/me` | Get current user |
-| POST | `/api/v1/auth/logout` | Logout |
-| PUT | `/api/v1/admin/update` | Update profile |
+| POST | `/register` | Register new admin (multipart) |
+| POST | `/login` | Login (multipart) |
+| POST | `/refresh` | Refresh access token |
+| GET | `/me` | Get current admin 🔒 |
+| POST | `/logout` | Logout 🔒 |
+
+### User Auth (`/api/v1/users/auth`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/register` | Register (sends OTP email) |
+| POST | `/login` | Login (requires verified account) |
+| POST | `/verify-otp` | Verify OTP & activate account |
+| POST | `/resend-otp` | Resend OTP to email |
+| POST | `/forgot-password` | Request password reset |
+| POST | `/reset-password` | Reset password with token |
+| POST | `/refresh` | Refresh access token |
+| GET | `/me` | Get current user 🔒 |
+| POST | `/logout` | Logout 🔒 |
+
+### User Features (`/api/v1/users`) 🔒
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| PUT | `/update` | Update profile |
+| POST | `/audio/:id/listen` | Record listening (SP) |
+| GET | `/listening-history` | Get listening history |
+| POST | `/audio/:id/like` | Like audio |
+| DELETE | `/audio/:id/like` | Unlike audio |
+| GET | `/audio/:id/is-liked` | Check if liked |
+| GET | `/likes` | Get user's liked audios |
+
+### Audio, Mood Categories, Ustadz
+
+Public GET endpoints and admin-only CUD operations. See router for details.
 
 ## 🔒 Security Features
 
 - **Password Hashing**: bcrypt with default cost
 - **JWT**: HS256 signed tokens
+- **OTP Verification**: 6-digit code, 10 min expiry
+- **Password Reset**: Hashed tokens, 30 min expiry, single-use
 - **Rate Limiting**: 5 requests/second per IP on auth endpoints
 - **Account Lockout**: 5 failed attempts → 30 minute lock
 - **Refresh Token Rotation**: Old tokens revoked on refresh
+- **Session Revocation**: All sessions revoked after password reset
 
 ## 📦 Database Migrations
 
@@ -133,6 +176,7 @@ Migrations run automatically on startup via GORM AutoMigrate and SQL files in `m
 - `sp_handle_login_failure`: Handles login throttling
 - `sp_check_lock_status`: Checks account lock status
 - `sp_revoke_user_tokens`: Revokes all user refresh tokens
+- `sp_record_listening`: Records listening with spam prevention
 
 ## 🧪 Testing
 

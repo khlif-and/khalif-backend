@@ -46,12 +46,14 @@ func (r *moodCategoryRepo) FindByName(name string) (*domain.MoodCategory, error)
 	return &mood, err
 }
 
-func (r *moodCategoryRepo) FindAll() ([]domain.MoodCategory, int64, error) {
+func (r *moodCategoryRepo) FindAll(page, limit int) ([]domain.MoodCategory, int64, error) {
 	var moods []domain.MoodCategory
 	var total int64
 
 	r.db.Model(&domain.MoodCategory{}).Count(&total)
-	err := r.db.Find(&moods).Error
+
+	offset := (page - 1) * limit
+	err := r.db.Order("created_at DESC").Offset(offset).Limit(limit).Find(&moods).Error
 
 	return moods, total, err
 }

@@ -62,16 +62,28 @@ func (s *moodCategoryService) GetByUUID(uuid string) (*domain.MoodCategory, erro
 	return mood, nil
 }
 
-func (s *moodCategoryService) GetAll() (*domain.MoodCategoryListResponse, error) {
-	moods, total, err := s.moodRepo.FindAll()
+func (s *moodCategoryService) GetAll(page, limit int) (*domain.MoodCategoryListResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	moods, total, err := s.moodRepo.FindAll(page, limit)
 	if err != nil {
 		logger.Log.Error("Failed to fetch mood categories", zap.Error(err))
 		return nil, errors.New(messages.ErrInternalServer)
 	}
 
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
 	return &domain.MoodCategoryListResponse{
 		MoodCategories: moods,
 		Total:          total,
+		Page:           page,
+		Limit:          limit,
+		TotalPages:     totalPages,
 	}, nil
 }
 

@@ -46,7 +46,7 @@ type AudioService interface {
 type MoodCategoryService interface {
 	Create(req *domain.CreateMoodCategoryRequest) (*domain.MoodCategory, error)
 	GetByUUID(uuid string) (*domain.MoodCategory, error)
-	GetAll() (*domain.MoodCategoryListResponse, error)
+	GetAll(page, limit int) (*domain.MoodCategoryListResponse, error)
 	GetAudiosByMoodUUID(moodUUID string, page, limit int) (*domain.AudioListResponse, error)
 	Update(uuid string, req *domain.UpdateMoodCategoryRequest) (*domain.MoodCategory, error)
 	Delete(uuid string) error
@@ -55,7 +55,7 @@ type MoodCategoryService interface {
 type UstadzService interface {
 	Create(req *domain.CreateUstadzRequest) (*domain.Ustadz, error)
 	GetByUUID(uuid string) (*domain.Ustadz, error)
-	GetAll() (*domain.UstadzListResponse, error)
+	GetAll(page, limit int) (*domain.UstadzListResponse, error)
 	Update(uuid string, req *domain.UpdateUstadzRequest) (*domain.Ustadz, error)
 	Delete(uuid string) error
 }
@@ -63,6 +63,6 @@ type UstadzService interface {
 type LikeService interface {
 	LikeAudio(userID uint, audioUUID string) (*domain.Like, error)
 	UnlikeAudio(userID uint, audioUUID string) error
-	GetUserLikes(userID uint) (*domain.LikeListResponse, error)
+	GetUserLikes(userID uint, page, limit int) (*domain.LikeListResponse, error)
 	IsLiked(userID uint, audioUUID string) (bool, error)
 }
