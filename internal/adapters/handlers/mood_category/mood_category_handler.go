@@ -48,7 +48,12 @@ func (h *MoodCategoryHandler) Create(c *gin.Context) {
 }
 
 func (h *MoodCategoryHandler) GetAll(c *gin.Context) {
-	response, err := h.service.GetAll()
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	response, err := h.service.GetAll(page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return

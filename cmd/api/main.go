@@ -14,6 +14,7 @@ import (
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
 	likeHandler "khalif-backend/internal/adapters/handlers/like"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	searchHandler "khalif-backend/internal/adapters/handlers/search"
 	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	appRouter "khalif-backend/internal/adapters/http"
 	audioRepo "khalif-backend/internal/adapters/repositories/audio"
@@ -27,8 +28,10 @@ import (
 	userAuthService "khalif-backend/internal/core/services/auth/user"
 	likeService "khalif-backend/internal/core/services/like"
 	moodCategoryService "khalif-backend/internal/core/services/mood_category"
+	searchService "khalif-backend/internal/core/services/search"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
 	"khalif-backend/internal/infrastructure/email"
+	"khalif-backend/internal/infrastructure/search"
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/database"
 	"khalif-backend/internal/platform/logger"
@@ -69,6 +72,18 @@ func main() {
 	ustadzSvc := ustadzService.NewUstadzService(ustadzRepoInstance)
 	likeSvc := likeService.NewLikeService(likeRepoInstance, audioRepoInstance)
 
+	// Initialize Meilisearch
+	meiliClient := search.NewMeilisearchClient(cfg)
+	indexer := search.NewIndexer(db, meiliClient)
+	searchSvc := searchService.NewSearchService(meiliClient)
+
+	// Sync existing data to Meilisearch (run in background)
+	go func() {
+		if err := indexer.SyncAll(); err != nil {
+			logger.Log.Error("Failed to sync data to Meilisearch", zap.Error(err))
+		}
+	}()
+
 	authHandler := adminAuthHandler.NewAuthHandler(authService)
 	adminHandler := adminAuthHandler.NewAdminHandler(adminService)
 	userAuthHdlr := userAuthHandler.NewAuthHandler(userAuthSvc)
@@ -77,8 +92,9 @@ func main() {
 	moodCategoryHdlr := moodCategoryHandler.NewMoodCategoryHandler(moodCategorySvc)
 	ustadzHdlr := ustadzHandler.NewUstadzHandler(ustadzSvc)
 	likeHdlr := likeHandler.NewLikeHandler(likeSvc)
+	searchHdlr := searchHandler.NewSearchHandler(searchSvc)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr)
+	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 	srv := &http.Server{

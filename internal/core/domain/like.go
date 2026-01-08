@@ -22,6 +22,9 @@ type LikeResponse struct {
 }
 
 type LikeListResponse struct {
-	Likes []Like `json:"likes"`
-	Total int64  `json:"total"`
+	Likes      []Like `json:"likes"`
+	Total      int64  `json:"total"`
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	TotalPages int    `json:"total_pages"`
 }
