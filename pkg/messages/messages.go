@@ -49,6 +49,17 @@ const (
 	// Google Auth errors
 	ErrInvalidGoogleToken     = "invalid google token"
 	ErrGoogleEmailNotVerified = "google email not verified"
+
+	// Prayer errors
+	ErrLatLongRequired = "latitude and longitude are required"
+	ErrInvalidLatitude = "invalid latitude"
+	ErrInvalidLongitude = "invalid longitude"
+
+	// Hadist errors
+	ErrHadistNotFound = "hadist not found"
+
+	// Doa errors
+	ErrDoaNotFound = "doa not found"
 )
 
 // Success Messages
@@ -102,4 +113,24 @@ const (
 	MsgPlaylistDeleted      = "playlist deleted successfully"
 	MsgAudioAddedToPlaylist = "audio added to playlist successfully"
 	MsgAudioRemovedFromPlaylist = "audio removed from playlist successfully"
+	MsgPlaylistLiked   = "playlist liked successfully"
+	MsgPlaylistUnliked = "playlist unliked successfully"
+
+	// Hadist
+	MsgHadistCreated = "hadist created successfully"
+	MsgHadistUpdated = "hadist updated successfully"
+	MsgHadistDeleted = "hadist deleted successfully"
+	MsgHadistLiked   = "hadist liked successfully"
+	MsgHadistUnliked = "hadist unliked successfully"
+	MsgHadistBookmarked   = "hadist bookmarked successfully"
+	MsgHadistUnbookmarked = "hadist unbookmarked successfully"
+
+	// Doa
+	MsgDoaCreated = "doa created successfully"
+	MsgDoaUpdated = "doa updated successfully"
+	MsgDoaDeleted = "doa deleted successfully"
+	MsgDoaLiked   = "doa liked successfully"
+	MsgDoaUnliked = "doa unliked successfully"
+	MsgDoaBookmarked   = "doa bookmarked successfully"
+	MsgDoaUnbookmarked = "doa unbookmarked successfully"
 )

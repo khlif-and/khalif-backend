@@ -100,3 +100,55 @@ type LikeRepository interface {
 	IncrementAudioLikeCount(audioID uint) error
 	DecrementAudioLikeCount(audioID uint) error
 }
+
+type HadistRepository interface {
+	Create(hadist *domain.Hadist) error
+	FindByID(id uint) (*domain.Hadist, error)
+	FindByUUID(uuid string) (*domain.Hadist, error)
+	FindAll(page, limit int) ([]domain.Hadist, int64, error)
+	FindByCategory(category string, page, limit int) ([]domain.Hadist, int64, error)
+	FindByKitab(kitab string, page, limit int) ([]domain.Hadist, int64, error)
+	FindRandom() (*domain.Hadist, error)
+	Update(hadist *domain.Hadist) error
+	Delete(id uint) error
+	IncrementListeningCount(id uint) error
+	// Like
+	CreateLike(like *domain.HadistLike) error
+	FindLikeByUserAndHadist(userID, hadistID uint) (*domain.HadistLike, error)
+	DeleteLike(id uint) error
+	IncrementLikeCount(hadistID uint) error
+	DecrementLikeCount(hadistID uint) error
+	// Bookmark
+	CreateBookmark(bookmark *domain.HadistBookmark) error
+	FindBookmarkByUserAndHadist(userID, hadistID uint) (*domain.HadistBookmark, error)
+	DeleteBookmark(id uint) error
+	IncrementBookmarkCount(hadistID uint) error
+	DecrementBookmarkCount(hadistID uint) error
+	GetUserBookmarks(userID uint, page, limit int) ([]domain.HadistBookmark, int64, error)
+}
+
+type DoaRepository interface {
+	Create(doa *domain.Doa) error
+	FindByID(id uint) (*domain.Doa, error)
+	FindByUUID(uuid string) (*domain.Doa, error)
+	FindAll(page, limit int) ([]domain.Doa, int64, error)
+	FindByCategory(category string, page, limit int) ([]domain.Doa, int64, error)
+	FindByHadistID(hadistID uint, page, limit int) ([]domain.Doa, int64, error)
+	FindRandom() (*domain.Doa, error)
+	Update(doa *domain.Doa) error
+	Delete(id uint) error
+	IncrementListeningCount(id uint) error
+	// Like
+	CreateLike(like *domain.DoaLike) error
+	FindLikeByUserAndDoa(userID, doaID uint) (*domain.DoaLike, error)
+	DeleteLike(id uint) error
+	IncrementLikeCount(doaID uint) error
+	DecrementLikeCount(doaID uint) error
+	// Bookmark
+	CreateBookmark(bookmark *domain.DoaBookmark) error
+	FindBookmarkByUserAndDoa(userID, doaID uint) (*domain.DoaBookmark, error)
+	DeleteBookmark(id uint) error
+	IncrementBookmarkCount(doaID uint) error
+	DecrementBookmarkCount(doaID uint) error
+	GetUserBookmarks(userID uint, page, limit int) ([]domain.DoaBookmark, int64, error)
+}

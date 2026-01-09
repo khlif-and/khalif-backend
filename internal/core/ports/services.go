@@ -71,6 +71,69 @@ type LikeService interface {
 	IsLiked(userID uint, audioUUID string) (bool, error)
 }
 
+type HadistService interface {
+	Create(req *domain.CreateHadistRequest) (*domain.Hadist, error)
+	GetByUUID(uuid string) (*domain.Hadist, error)
+	GetAll(page, limit int) (*domain.HadistListResponse, error)
+	GetByCategory(category string, page, limit int) (*domain.HadistListResponse, error)
+	GetByKitab(kitab string, page, limit int) (*domain.HadistListResponse, error)
+	GetRandom() (*domain.Hadist, error)
+	Update(uuid string, req *domain.UpdateHadistRequest) (*domain.Hadist, error)
+	Delete(uuid string) error
+	IncrementListeningCount(uuid string) error
+	// User engagement
+	LikeHadist(userID uint, uuid string) error
+	UnlikeHadist(userID uint, uuid string) error
+	IsLiked(userID uint, uuid string) (bool, error)
+	BookmarkHadist(userID uint, uuid string) error
+	UnbookmarkHadist(userID uint, uuid string) error
+	IsBookmarked(userID uint, uuid string) (bool, error)
+}
+
+type DoaService interface {
+	Create(req *domain.CreateDoaRequest) (*domain.Doa, error)
+	GetByUUID(uuid string) (*domain.Doa, error)
+	GetAll(page, limit int) (*domain.DoaListResponse, error)
+	GetByCategory(category string, page, limit int) (*domain.DoaListResponse, error)
+	GetByHadist(hadistUUID string, page, limit int) (*domain.DoaListResponse, error)
+	GetRandom() (*domain.Doa, error)
+	Update(uuid string, req *domain.UpdateDoaRequest) (*domain.Doa, error)
+	Delete(uuid string) error
+	IncrementListeningCount(uuid string) error
+	// User engagement
+	LikeDoa(userID uint, uuid string) error
+	UnlikeDoa(userID uint, uuid string) error
+	IsLiked(userID uint, uuid string) (bool, error)
+	BookmarkDoa(userID uint, uuid string) error
+	UnbookmarkDoa(userID uint, uuid string) error
+	IsBookmarked(userID uint, uuid string) (bool, error)
+}
+
 type PrayerTimeService interface {
 	GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error)
+	GetDailyPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error)
+}
+
+type PlaylistService interface {
+	Create(req *domain.CreatePlaylistRequest, authorType domain.AuthorType, authorID uint) (*domain.Playlist, error)
+	GetByUUID(uuid string) (*domain.PlaylistResponse, error)
+	GetAll(page, limit int) (*domain.PlaylistListResponse, error)
+	GetMyPlaylists(authorType domain.AuthorType, authorID uint, page, limit int) (*domain.PlaylistListResponse, error)
+	Update(uuid string, req *domain.UpdatePlaylistRequest, authorType domain.AuthorType, authorID uint) (*domain.Playlist, error)
+	Delete(uuid string, authorType domain.AuthorType, authorID uint) error
+	AddAudio(playlistUUID, audioUUID string, position int, authorType domain.AuthorType, authorID uint) error
+	RemoveAudio(playlistUUID, audioUUID string, authorType domain.AuthorType, authorID uint) error
+	LikePlaylist(playlistUUID string, userID uint) error
+	UnlikePlaylist(playlistUUID string, userID uint) error
+	IsLiked(playlistUUID string, userID uint) (bool, error)
+	IncrementListeningCount(playlistUUID string) error
+}
+
+type SearchService interface {
+	SearchAll(query string, limit int64) (interface{}, error)
+	SearchAudios(query string, limit int64) (interface{}, error)
+	SearchUstadzs(query string, limit int64) (interface{}, error)
+	SearchMoodCategories(query string, limit int64) (interface{}, error)
+	SearchPlaylists(query string, limit int64) (interface{}, error)
+	SearchDoas(query string, limit int64) (interface{}, error)
 }

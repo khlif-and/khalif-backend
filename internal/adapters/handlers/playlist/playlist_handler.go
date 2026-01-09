@@ -346,62 +346,6 @@ func (h *PlaylistHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// LikePlaylist likes a playlist
-func (h *PlaylistHandler) LikePlaylist(c *gin.Context) {
-	uuid := c.Param("id")
-
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": messages.ErrUnauthorized})
-		return
-	}
-
-	if err := h.service.LikePlaylist(uuid, userID.(uint)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "playlist liked"})
-}
-
-// UnlikePlaylist unlikes a playlist
-func (h *PlaylistHandler) UnlikePlaylist(c *gin.Context) {
-	uuid := c.Param("id")
-
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": messages.ErrUnauthorized})
-		return
-	}
-
-	if err := h.service.UnlikePlaylist(uuid, userID.(uint)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "playlist unliked"})
-}
-
-// IsLiked checks if user has liked a playlist
-func (h *PlaylistHandler) IsLiked(c *gin.Context) {
-	uuid := c.Param("id")
-
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": messages.ErrUnauthorized})
-		return
-	}
-
-	liked, err := h.service.IsLiked(uuid, userID.(uint))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"is_liked": liked})
-}
-
-// IncrementListeningCount increments playlist listening count
 func (h *PlaylistHandler) IncrementListeningCount(c *gin.Context) {
 	uuid := c.Param("id")
 

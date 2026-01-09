@@ -18,7 +18,7 @@ import (
 	moodCategoryRepo "khalif-backend/internal/adapters/repositories/mood_category"
 	playlistRepo "khalif-backend/internal/adapters/repositories/playlist"
 	ustadzRepo "khalif-backend/internal/adapters/repositories/ustadz"
-	
+
 	audioService "khalif-backend/internal/core/services/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
@@ -27,21 +27,21 @@ import (
 	likeService "khalif-backend/internal/core/services/like"
 	moodCategoryService "khalif-backend/internal/core/services/mood_category"
 	playlistService "khalif-backend/internal/core/services/playlist"
+	prayerService "khalif-backend/internal/core/services/prayer"
 	searchService "khalif-backend/internal/core/services/search"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
-	prayerService "khalif-backend/internal/core/services/prayer"
 
 	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
 	doaHandler "khalif-backend/internal/adapters/handlers/doa"
+	engagementHandler "khalif-backend/internal/adapters/handlers/engagement"
 	hadistHandler "khalif-backend/internal/adapters/handlers/hadist"
-	likeHandler "khalif-backend/internal/adapters/handlers/like"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
 	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
+	prayerHandler "khalif-backend/internal/adapters/handlers/prayer"
 	searchHandler "khalif-backend/internal/adapters/handlers/search"
 	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
-	prayerHandler "khalif-backend/internal/adapters/handlers/prayer"
 
 	appRouter "khalif-backend/internal/adapters/http"
 	"khalif-backend/internal/infrastructure/email"
@@ -58,7 +58,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	logger.InitLogger(cfg.AppEnv)
-	logger.Log.Info("Starting Khalif Backend Auth Service...")
+	logger.Log.Info("Starting Khalif Backend API...")
 
 	db := database.InitDB(cfg)
 	database.InitRedis(cfg)
@@ -86,29 +86,23 @@ func main() {
 	ustadzSvc := ustadzService.NewUstadzService(ustadzRepoInstance)
 	likeSvc := likeService.NewLikeService(likeRepoInstance, audioRepoInstance)
 
-	// Playlist
 	playlistRepoInstance := playlistRepo.NewPlaylistRepo(db)
 	playlistSvc := playlistService.NewPlaylistService(playlistRepoInstance, audioRepoInstance)
 
-	// Hadist
 	hadistRepoInstance := hadistRepo.NewHadistRepo(db)
 	hadistSvc := hadistService.NewHadistService(hadistRepoInstance)
 
-	// Doa
 	doaRepoInstance := doaRepo.NewDoaRepo(db)
 	doaSvc := doaService.NewDoaService(doaRepoInstance, hadistRepoInstance)
 	doaHdlr := doaHandler.NewDoaHandler(doaSvc)
 
-	// Prayer Times
 	prayerSvc := prayerService.NewPrayerService()
 	prayerHdlr := prayerHandler.NewPrayerHandler(prayerSvc)
 
-	// Initialize Meilisearch
 	meiliClient := search.NewMeilisearchClient(cfg)
 	indexer := search.NewIndexer(db, meiliClient)
 	searchSvc := searchService.NewSearchService(meiliClient)
 
-	// Sync existing data to Meilisearch (run in background)
 	go func() {
 		if err := indexer.SyncAll(); err != nil {
 			logger.Log.Error("Failed to sync data to Meilisearch", zap.Error(err))
@@ -122,12 +116,30 @@ func main() {
 	audioHdlr := audioHandler.NewAudioHandler(audioSvc)
 	moodCategoryHdlr := moodCategoryHandler.NewMoodCategoryHandler(moodCategorySvc)
 	ustadzHdlr := ustadzHandler.NewUstadzHandler(ustadzSvc)
-	likeHdlr := likeHandler.NewLikeHandler(likeSvc)
 	searchHdlr := searchHandler.NewSearchHandler(searchSvc)
 	playlistHdlr := playlistHandler.NewPlaylistHandler(playlistSvc)
 	hadistHdlr := hadistHandler.NewHadistHandler(hadistSvc)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr, playlistHdlr, hadistHdlr, doaHdlr, prayerHdlr)
+	likeHdlr := engagementHandler.NewLikeHandler(likeSvc, hadistSvc, doaSvc, playlistSvc)
+	bookmarkHdlr := engagementHandler.NewBookmarkHandler(hadistSvc, doaSvc)
+
+	router := appRouter.NewRouter(
+		cfg,
+		authHandler,
+		adminHandler,
+		userAuthHdlr,
+		userHandler,
+		audioHdlr,
+		moodCategoryHdlr,
+		ustadzHdlr,
+		likeHdlr,
+		bookmarkHdlr,
+		searchHdlr,
+		playlistHdlr,
+		hadistHdlr,
+		doaHdlr,
+		prayerHdlr,
+	)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 	srv := &http.Server{

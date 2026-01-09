@@ -1,11 +1,11 @@
 package prayer
 
 import (
-	"net/http"
-	"strconv"
-
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
+	"khalif-backend/pkg/messages"
+	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,35 +18,24 @@ func NewPrayerHandler(service ports.PrayerTimeService) *PrayerHandler {
 	return &PrayerHandler{service: service}
 }
 
-// GetPrayerTimes godoc
-// @Summary Get prayer times and countdown
-// @Description Get 5 daily prayer times, current/next status, and countdown to next prayer
-// @Tags prayer
-// @Produce json
-// @Param lat query number true "Latitude"
-// @Param long query number true "Longitude"
-// @Success 200 {object} domain.PrayerTimesResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/prayer-times [get]
 func (h *PrayerHandler) GetPrayerTimes(c *gin.Context) {
 	latStr := c.Query("lat")
 	longStr := c.Query("long")
 
 	if latStr == "" || longStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "latitude and longitude is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrLatLongRequired})
 		return
 	}
 
 	lat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid latitude"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrInvalidLatitude})
 		return
 	}
 
 	long, err := strconv.ParseFloat(longStr, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid longitude"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrInvalidLongitude})
 		return
 	}
 
@@ -57,9 +46,13 @@ func (h *PrayerHandler) GetPrayerTimes(c *gin.Context) {
 
 	res, err := h.service.GetPrayerTimes(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+func (h *PrayerHandler) GetDailyPrayerTimes(c *gin.Context) {
+	h.GetPrayerTimes(c)
 }

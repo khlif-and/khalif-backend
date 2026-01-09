@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"khalif-backend/internal/core/domain"
+	"khalif-backend/internal/core/ports"
 	"khalif-backend/internal/platform/logger"
 	"khalif-backend/pkg/messages"
 
@@ -12,41 +13,15 @@ import (
 	"go.uber.org/zap"
 )
 
-type HadistRepository interface {
-	Create(hadist *domain.Hadist) error
-	FindByID(id uint) (*domain.Hadist, error)
-	FindByUUID(uuid string) (*domain.Hadist, error)
-	FindAll(page, limit int) ([]domain.Hadist, int64, error)
-	FindByCategory(category string, page, limit int) ([]domain.Hadist, int64, error)
-	FindByKitab(kitab string, page, limit int) ([]domain.Hadist, int64, error)
-	FindRandom() (*domain.Hadist, error)
-	Update(hadist *domain.Hadist) error
-	Delete(id uint) error
-	IncrementListeningCount(id uint) error
-	// Like
-	CreateLike(like *domain.HadistLike) error
-	FindLikeByUserAndHadist(userID, hadistID uint) (*domain.HadistLike, error)
-	DeleteLike(id uint) error
-	IncrementLikeCount(hadistID uint) error
-	DecrementLikeCount(hadistID uint) error
-	// Bookmark
-	CreateBookmark(bookmark *domain.HadistBookmark) error
-	FindBookmarkByUserAndHadist(userID, hadistID uint) (*domain.HadistBookmark, error)
-	DeleteBookmark(id uint) error
-	IncrementBookmarkCount(hadistID uint) error
-	DecrementBookmarkCount(hadistID uint) error
-	GetUserBookmarks(userID uint, page, limit int) ([]domain.HadistBookmark, int64, error)
+type hadistService struct {
+	repo ports.HadistRepository
 }
 
-type HadistService struct {
-	repo HadistRepository
+func NewHadistService(repo ports.HadistRepository) ports.HadistService {
+	return &hadistService{repo: repo}
 }
 
-func NewHadistService(repo HadistRepository) *HadistService {
-	return &HadistService{repo: repo}
-}
-
-func (s *HadistService) Create(req *domain.CreateHadistRequest) (*domain.Hadist, error) {
+func (s *hadistService) Create(req *domain.CreateHadistRequest) (*domain.Hadist, error) {
 	if req.NamaHadist == "" {
 		return nil, errors.New("nama hadist is required")
 	}
@@ -65,7 +40,7 @@ func (s *HadistService) Create(req *domain.CreateHadistRequest) (*domain.Hadist,
 	return hadist, nil
 }
 
-func (s *HadistService) GetByUUID(uuid string) (*domain.Hadist, error) {
+func (s *hadistService) GetByUUID(uuid string) (*domain.Hadist, error) {
 	hadist, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		logger.Log.Error("Failed to find hadist", zap.String("uuid", uuid), zap.Error(err))
@@ -77,7 +52,7 @@ func (s *HadistService) GetByUUID(uuid string) (*domain.Hadist, error) {
 	return hadist, nil
 }
 
-func (s *HadistService) GetAll(page, limit int) (*domain.HadistListResponse, error) {
+func (s *hadistService) GetAll(page, limit int) (*domain.HadistListResponse, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -102,7 +77,7 @@ func (s *HadistService) GetAll(page, limit int) (*domain.HadistListResponse, err
 	}, nil
 }
 
-func (s *HadistService) GetByCategory(category string, page, limit int) (*domain.HadistListResponse, error) {
+func (s *hadistService) GetByCategory(category string, page, limit int) (*domain.HadistListResponse, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -127,7 +102,7 @@ func (s *HadistService) GetByCategory(category string, page, limit int) (*domain
 	}, nil
 }
 
-func (s *HadistService) GetByKitab(kitab string, page, limit int) (*domain.HadistListResponse, error) {
+func (s *hadistService) GetByKitab(kitab string, page, limit int) (*domain.HadistListResponse, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -152,7 +127,7 @@ func (s *HadistService) GetByKitab(kitab string, page, limit int) (*domain.Hadis
 	}, nil
 }
 
-func (s *HadistService) GetRandom() (*domain.Hadist, error) {
+func (s *hadistService) GetRandom() (*domain.Hadist, error) {
 	hadist, err := s.repo.FindRandom()
 	if err != nil {
 		logger.Log.Error("Failed to get random hadist", zap.Error(err))
@@ -164,7 +139,7 @@ func (s *HadistService) GetRandom() (*domain.Hadist, error) {
 	return hadist, nil
 }
 
-func (s *HadistService) Update(uuid string, req *domain.UpdateHadistRequest) (*domain.Hadist, error) {
+func (s *hadistService) Update(uuid string, req *domain.UpdateHadistRequest) (*domain.Hadist, error) {
 	hadist, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		return nil, errors.New(messages.ErrInternalServer)
@@ -187,7 +162,7 @@ func (s *HadistService) Update(uuid string, req *domain.UpdateHadistRequest) (*d
 	return hadist, nil
 }
 
-func (s *HadistService) Delete(uuid string) error {
+func (s *hadistService) Delete(uuid string) error {
 	hadist, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		return errors.New(messages.ErrInternalServer)
@@ -204,7 +179,7 @@ func (s *HadistService) Delete(uuid string) error {
 	return nil
 }
 
-func (s *HadistService) IncrementListeningCount(uuid string) error {
+func (s *hadistService) IncrementListeningCount(uuid string) error {
 	hadist, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		return errors.New(messages.ErrInternalServer)
@@ -217,7 +192,7 @@ func (s *HadistService) IncrementListeningCount(uuid string) error {
 }
 
 // Like operations
-func (s *HadistService) LikeHadist(userID uint, hadistUUID string) error {
+func (s *hadistService) LikeHadist(userID uint, hadistUUID string) error {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return errors.New("hadist not found")
@@ -241,7 +216,7 @@ func (s *HadistService) LikeHadist(userID uint, hadistUUID string) error {
 	return nil
 }
 
-func (s *HadistService) UnlikeHadist(userID uint, hadistUUID string) error {
+func (s *hadistService) UnlikeHadist(userID uint, hadistUUID string) error {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return errors.New("hadist not found")
@@ -260,7 +235,7 @@ func (s *HadistService) UnlikeHadist(userID uint, hadistUUID string) error {
 	return nil
 }
 
-func (s *HadistService) IsLiked(userID uint, hadistUUID string) (bool, error) {
+func (s *hadistService) IsLiked(userID uint, hadistUUID string) (bool, error) {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return false, errors.New("hadist not found")
@@ -271,7 +246,7 @@ func (s *HadistService) IsLiked(userID uint, hadistUUID string) (bool, error) {
 }
 
 // Bookmark operations
-func (s *HadistService) BookmarkHadist(userID uint, hadistUUID string) error {
+func (s *hadistService) BookmarkHadist(userID uint, hadistUUID string) error {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return errors.New("hadist not found")
@@ -295,7 +270,7 @@ func (s *HadistService) BookmarkHadist(userID uint, hadistUUID string) error {
 	return nil
 }
 
-func (s *HadistService) UnbookmarkHadist(userID uint, hadistUUID string) error {
+func (s *hadistService) UnbookmarkHadist(userID uint, hadistUUID string) error {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return errors.New("hadist not found")
@@ -314,7 +289,7 @@ func (s *HadistService) UnbookmarkHadist(userID uint, hadistUUID string) error {
 	return nil
 }
 
-func (s *HadistService) IsBookmarked(userID uint, hadistUUID string) (bool, error) {
+func (s *hadistService) IsBookmarked(userID uint, hadistUUID string) (bool, error) {
 	hadist, err := s.repo.FindByUUID(hadistUUID)
 	if err != nil || hadist == nil {
 		return false, errors.New("hadist not found")

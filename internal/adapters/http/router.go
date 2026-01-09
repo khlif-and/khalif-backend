@@ -5,9 +5,9 @@ import (
 	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
-	hadistHandler "khalif-backend/internal/adapters/handlers/hadist"
 	doaHandler "khalif-backend/internal/adapters/handlers/doa"
-	likeHandler "khalif-backend/internal/adapters/handlers/like"
+	engagementHandler "khalif-backend/internal/adapters/handlers/engagement"
+	hadistHandler "khalif-backend/internal/adapters/handlers/hadist"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
 	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
 	prayerHandler "khalif-backend/internal/adapters/handlers/prayer"
@@ -28,7 +28,8 @@ func NewRouter(
 	audioHdlr *audioHandler.AudioHandler,
 	moodHdlr *moodCategoryHandler.MoodCategoryHandler,
 	ustadzHdlr *ustadzHandler.UstadzHandler,
-	likeHdlr *likeHandler.LikeHandler,
+	likeHdlr *engagementHandler.LikeHandler,
+	bookmarkHdlr *engagementHandler.BookmarkHandler,
 	searchHdlr *searchHandler.SearchHandler,
 	playlistHdlr *playlistHandler.PlaylistHandler,
 	hadistHdlr *hadistHandler.HadistHandler,
@@ -86,17 +87,14 @@ func NewRouter(
 			admin.PUT("/ustadz/:id", ustadzHdlr.Update)
 			admin.DELETE("/ustadz/:id", ustadzHdlr.Delete)
 
-			// Playlist admin routes
 			admin.POST("/playlist", playlistHdlr.CreateAdmin)
 			admin.PUT("/playlist/:id", playlistHdlr.UpdateAdmin)
 			admin.DELETE("/playlist/:id", playlistHdlr.DeleteAdmin)
 
-			// Hadist admin routes
 			admin.POST("/hadist", hadistHdlr.Create)
 			admin.PUT("/hadist/:id", hadistHdlr.Update)
 			admin.DELETE("/hadist/:id", hadistHdlr.Delete)
 
-			// Doa admin routes
 			admin.POST("/doa", doaHdlr.Create)
 			admin.PUT("/doa/:id", doaHdlr.Update)
 			admin.DELETE("/doa/:id", doaHdlr.Delete)
@@ -108,7 +106,6 @@ func NewRouter(
 			audio.GET("/:id", audioHdlr.GetByID)
 		}
 
-		// Radio (public)
 		api.GET("/radio/:id", audioHdlr.GetRadio)
 
 		moods := api.Group("/mood-categories")
@@ -124,7 +121,6 @@ func NewRouter(
 			ustadzGroup.GET("/:id", ustadzHdlr.GetByID)
 		}
 
-		// Search routes (public)
 		search := api.Group("/search")
 		{
 			search.GET("", searchHdlr.SearchAll)
@@ -135,7 +131,6 @@ func NewRouter(
 			search.GET("/doa", searchHdlr.SearchDoas)
 		}
 
-		// Playlist public routes
 		playlist := api.Group("/playlist")
 		{
 			playlist.GET("", playlistHdlr.GetAll)
@@ -143,7 +138,6 @@ func NewRouter(
 			playlist.POST("/:id/listen", playlistHdlr.IncrementListeningCount)
 		}
 
-		// Hadist public routes
 		hadist := api.Group("/hadist")
 		{
 			hadist.GET("", hadistHdlr.GetAll)
@@ -154,7 +148,6 @@ func NewRouter(
 			hadist.POST("/:id/listen", hadistHdlr.IncrementListeningCount)
 		}
 
-		// Doa public routes
 		doa := api.Group("/doa")
 		{
 			doa.GET("", doaHdlr.GetAll)
@@ -162,12 +155,11 @@ func NewRouter(
 			doa.GET("/category", doaHdlr.GetByCategory)
 			doa.GET("/hadist", doaHdlr.GetByHadist)
 			doa.GET("/:id", doaHdlr.GetByID)
-			doa.GET("/:id", doaHdlr.GetByID)
 			doa.POST("/:id/listen", doaHdlr.IncrementListeningCount)
 		}
 
-		// Prayer Times (public)
 		api.GET("/prayer-times", prayerHdlr.GetPrayerTimes)
+		api.GET("/prayer-times/daily", prayerHdlr.GetDailyPrayerTimes)
 	}
 
 	users := api.Group("/users")
@@ -176,16 +168,16 @@ func NewRouter(
 	{
 		usersAuth.POST("/register", userAuthHdlr.Register)
 		usersAuth.POST("/login", userAuthHdlr.Login)
-		usersAuth.POST("/refresh-token", userAuthHdlr.RefreshToken) // Changed from /refresh
-		usersAuth.POST("/logout", userAuthHdlr.Logout) // Added
+		usersAuth.POST("/refresh-token", userAuthHdlr.RefreshToken)
+		usersAuth.POST("/logout", userAuthHdlr.Logout)
 		usersAuth.POST("/forgot-password", userAuthHdlr.ForgotPassword)
 		usersAuth.POST("/reset-password", userAuthHdlr.ResetPassword)
-		usersAuth.POST("/google-login", userAuthHdlr.GoogleLogin) // Added
-		usersAuth.GET("/me", userAuthHdlr.Me) // Added
-		usersAuth.POST("/verify-otp", userAuthHdlr.VerifyOTP) // Moved from protected
-		usersAuth.POST("/resend-otp", userAuthHdlr.ResendOTP) // Moved from protected
+		usersAuth.POST("/google-login", userAuthHdlr.GoogleLogin)
+		usersAuth.GET("/me", userAuthHdlr.Me)
+		usersAuth.POST("/verify-otp", userAuthHdlr.VerifyOTP)
+		usersAuth.POST("/resend-otp", userAuthHdlr.ResendOTP)
 	}
-	
+
 	usersProtected := users.Group("/")
 	usersProtected.Use(middleware.UserAuthMiddleware(cfg))
 	{
@@ -193,10 +185,16 @@ func NewRouter(
 		usersProtected.POST("/audio/:id/listen", audioHdlr.IncrementListeningCount)
 		usersProtected.GET("/listening-history", audioHdlr.GetListeningHistory)
 
-		usersProtected.POST("/audio/:id/like", likeHdlr.LikeAudio)
-		usersProtected.DELETE("/audio/:id/like", likeHdlr.UnlikeAudio)
-		usersProtected.GET("/audio/:id/is-liked", likeHdlr.IsLiked)
+		// Unified Like routes - :entity = audio|hadist|doa|playlist
+		usersProtected.POST("/:entity/:id/like", likeHdlr.Like)
+		usersProtected.DELETE("/:entity/:id/like", likeHdlr.Unlike)
+		usersProtected.GET("/:entity/:id/is-liked", likeHdlr.IsLiked)
 		usersProtected.GET("/likes", likeHdlr.GetUserLikes)
+
+		// Unified Bookmark routes - :entity = hadist|doa
+		usersProtected.POST("/:entity/:id/bookmark", bookmarkHdlr.Bookmark)
+		usersProtected.DELETE("/:entity/:id/bookmark", bookmarkHdlr.Unbookmark)
+		usersProtected.GET("/:entity/:id/is-bookmarked", bookmarkHdlr.IsBookmarked)
 
 		// Playlist user routes
 		usersProtected.POST("/playlist", playlistHdlr.CreateUser)
@@ -205,17 +203,6 @@ func NewRouter(
 		usersProtected.DELETE("/playlist/:id", playlistHdlr.DeleteUser)
 		usersProtected.POST("/playlist/:id/audio/:audio_id", playlistHdlr.AddAudioToPlaylist)
 		usersProtected.DELETE("/playlist/:id/audio/:audio_id", playlistHdlr.RemoveAudioFromPlaylist)
-		usersProtected.POST("/playlist/:id/like", playlistHdlr.LikePlaylist)
-		usersProtected.DELETE("/playlist/:id/like", playlistHdlr.UnlikePlaylist)
-		usersProtected.GET("/playlist/:id/is-liked", playlistHdlr.IsLiked)
-
-		// Hadist user routes
-		usersProtected.POST("/hadist/:id/like", hadistHdlr.LikeHadist)
-		usersProtected.DELETE("/hadist/:id/like", hadistHdlr.UnlikeHadist)
-		usersProtected.GET("/hadist/:id/is-liked", hadistHdlr.IsLiked)
-		usersProtected.POST("/hadist/:id/bookmark", hadistHdlr.BookmarkHadist)
-		usersProtected.DELETE("/hadist/:id/bookmark", hadistHdlr.UnbookmarkHadist)
-		usersProtected.GET("/hadist/:id/is-bookmarked", hadistHdlr.IsBookmarked)
 	}
 
 	return r

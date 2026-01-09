@@ -5,59 +5,27 @@ import (
 	"math"
 
 	"khalif-backend/internal/core/domain"
-	"khalif-backend/pkg/messages"
+	"khalif-backend/internal/core/ports"
 	"khalif-backend/internal/platform/logger"
+	"khalif-backend/pkg/messages"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type DoaRepository interface {
-	Create(doa *domain.Doa) error
-	FindByID(id uint) (*domain.Doa, error)
-	FindByUUID(uuid string) (*domain.Doa, error)
-	FindAll(page, limit int) ([]domain.Doa, int64, error)
-	FindByCategory(category string, page, limit int) ([]domain.Doa, int64, error)
-	FindByHadistID(hadistID uint, page, limit int) ([]domain.Doa, int64, error)
-	FindRandom() (*domain.Doa, error)
-	Update(doa *domain.Doa) error
-	Delete(id uint) error
-	IncrementListeningCount(id uint) error
-	
-	// Like
-	CreateLike(like *domain.DoaLike) error
-	FindLikeByUserAndDoa(userID, doaID uint) (*domain.DoaLike, error)
-	DeleteLike(id uint) error
-	IncrementLikeCount(doaID uint) error
-	DecrementLikeCount(doaID uint) error
-	
-	// Bookmark
-	CreateBookmark(bookmark *domain.DoaBookmark) error
-	FindBookmarkByUserAndDoa(userID, doaID uint) (*domain.DoaBookmark, error)
-	DeleteBookmark(id uint) error
-	IncrementBookmarkCount(doaID uint) error
-	DecrementBookmarkCount(doaID uint) error
-	GetUserBookmarks(userID uint, page, limit int) ([]domain.DoaBookmark, int64, error)
+type doaService struct {
+	repo       ports.DoaRepository
+	hadistRepo ports.HadistRepository
 }
 
-// Minimal interface for Hadist repo we need here
-type HadistRepoForDoa interface {
-	FindByUUID(uuid string) (*domain.Hadist, error)
-}
-
-type DoaService struct {
-	repo       DoaRepository
-	hadistRepo HadistRepoForDoa
-}
-
-func NewDoaService(repo DoaRepository, hRepo HadistRepoForDoa) *DoaService {
-	return &DoaService{
+func NewDoaService(repo ports.DoaRepository, hRepo ports.HadistRepository) ports.DoaService {
+	return &doaService{
 		repo:       repo,
 		hadistRepo: hRepo,
 	}
 }
 
-func (s *DoaService) Create(req *domain.CreateDoaRequest) (*domain.Doa, error) {
+func (s *doaService) Create(req *domain.CreateDoaRequest) (*domain.Doa, error) {
 	if req.JudulDoa == "" {
 		return nil, errors.New("judul doa is required")
 	}
@@ -87,7 +55,7 @@ func (s *DoaService) Create(req *domain.CreateDoaRequest) (*domain.Doa, error) {
 	return doa, nil
 }
 
-func (s *DoaService) Update(uuid string, req *domain.UpdateDoaRequest) (*domain.Doa, error) {
+func (s *doaService) Update(uuid string, req *domain.UpdateDoaRequest) (*domain.Doa, error) {
 	doa, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		return nil, errors.New(messages.ErrInternalServer)
@@ -115,7 +83,7 @@ func (s *DoaService) Update(uuid string, req *domain.UpdateDoaRequest) (*domain.
 	return doa, nil
 }
 
-func (s *DoaService) Delete(uuid string) error {
+func (s *doaService) Delete(uuid string) error {
 	doa, err := s.repo.FindByUUID(uuid)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -123,7 +91,7 @@ func (s *DoaService) Delete(uuid string) error {
 	return s.repo.Delete(doa.ID)
 }
 
-func (s *DoaService) GetAll(page, limit int) (*domain.DoaListResponse, error) {
+func (s *doaService) GetAll(page, limit int) (*domain.DoaListResponse, error) {
 	if page < 1 { page = 1 }
 	if limit < 1 || limit > 100 { limit = 20 }
 
@@ -144,7 +112,7 @@ func (s *DoaService) GetAll(page, limit int) (*domain.DoaListResponse, error) {
 	}, nil
 }
 
-func (s *DoaService) GetByUUID(uuid string) (*domain.Doa, error) {
+func (s *doaService) GetByUUID(uuid string) (*domain.Doa, error) {
 	doa, err := s.repo.FindByUUID(uuid)
 	if err != nil {
 		return nil, errors.New(messages.ErrInternalServer)
@@ -155,7 +123,7 @@ func (s *DoaService) GetByUUID(uuid string) (*domain.Doa, error) {
 	return doa, nil
 }
 
-func (s *DoaService) GetByCategory(category string, page, limit int) (*domain.DoaListResponse, error) {
+func (s *doaService) GetByCategory(category string, page, limit int) (*domain.DoaListResponse, error) {
 	if page < 1 { page = 1 }
 	if limit < 1 || limit > 100 { limit = 20 }
 
@@ -174,7 +142,7 @@ func (s *DoaService) GetByCategory(category string, page, limit int) (*domain.Do
 	}, nil
 }
 
-func (s *DoaService) GetByHadist(hadistUUID string, page, limit int) (*domain.DoaListResponse, error) {
+func (s *doaService) GetByHadist(hadistUUID string, page, limit int) (*domain.DoaListResponse, error) {
 	if page < 1 { page = 1 }
 	if limit < 1 || limit > 100 { limit = 20 }
 	
@@ -199,7 +167,7 @@ func (s *DoaService) GetByHadist(hadistUUID string, page, limit int) (*domain.Do
 }
 
 
-func (s *DoaService) GetRandom() (*domain.Doa, error) {
+func (s *doaService) GetRandom() (*domain.Doa, error) {
 	doa, err := s.repo.FindRandom()
 	if err != nil || doa == nil {
 		return nil, errors.New("no doa found")
@@ -207,7 +175,7 @@ func (s *DoaService) GetRandom() (*domain.Doa, error) {
 	return doa, nil
 }
 
-func (s *DoaService) IncrementListeningCount(uuid string) error {
+func (s *doaService) IncrementListeningCount(uuid string) error {
 	doa, err := s.repo.FindByUUID(uuid)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -216,7 +184,7 @@ func (s *DoaService) IncrementListeningCount(uuid string) error {
 }
 
 // Like Logic
-func (s *DoaService) LikeDoa(userID uint, doaUUID string) error {
+func (s *doaService) LikeDoa(userID uint, doaUUID string) error {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -235,7 +203,7 @@ func (s *DoaService) LikeDoa(userID uint, doaUUID string) error {
 	return nil
 }
 
-func (s *DoaService) UnlikeDoa(userID uint, doaUUID string) error {
+func (s *doaService) UnlikeDoa(userID uint, doaUUID string) error {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -253,7 +221,7 @@ func (s *DoaService) UnlikeDoa(userID uint, doaUUID string) error {
 	return nil
 }
 
-func (s *DoaService) IsLiked(userID uint, doaUUID string) (bool, error) {
+func (s *doaService) IsLiked(userID uint, doaUUID string) (bool, error) {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return false, errors.New("doa not found")
@@ -263,7 +231,7 @@ func (s *DoaService) IsLiked(userID uint, doaUUID string) (bool, error) {
 }
 
 // Bookmark Logic
-func (s *DoaService) BookmarkDoa(userID uint, doaUUID string) error {
+func (s *doaService) BookmarkDoa(userID uint, doaUUID string) error {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -282,7 +250,7 @@ func (s *DoaService) BookmarkDoa(userID uint, doaUUID string) error {
 	return nil
 }
 
-func (s *DoaService) UnbookmarkDoa(userID uint, doaUUID string) error {
+func (s *doaService) UnbookmarkDoa(userID uint, doaUUID string) error {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return errors.New("doa not found")
@@ -300,7 +268,7 @@ func (s *DoaService) UnbookmarkDoa(userID uint, doaUUID string) error {
 	return nil
 }
 
-func (s *DoaService) IsBookmarked(userID uint, doaUUID string) (bool, error) {
+func (s *doaService) IsBookmarked(userID uint, doaUUID string) (bool, error) {
 	doa, err := s.repo.FindByUUID(doaUUID)
 	if err != nil || doa == nil {
 		return false, errors.New("doa not found")
