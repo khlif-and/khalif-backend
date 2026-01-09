@@ -67,6 +67,8 @@ type AudioRepository interface {
 	// Listening History with SP
 	RecordListening(userID, audioID uint) (alreadyListened bool, newCount int64, err error)
 	GetUserListeningHistory(userID uint, page, limit int) ([]domain.ListeningHistory, int64, error)
+	// Radio
+	GetRadioQueue(seedAudio *domain.Audio, limit int) ([]domain.Audio, error)
 }
 
 type MoodCategoryRepository interface {

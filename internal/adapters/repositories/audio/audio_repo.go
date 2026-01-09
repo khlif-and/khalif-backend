@@ -125,3 +125,32 @@ func (r *AudioRepo) GetUserListeningHistory(userID uint, page, limit int) ([]dom
 
 	return history, total, nil
 }
+
+// GetRadioQueue returns a queue of similar audios based on seed audio
+// Uses scoring: same ustadz (+3), same mood (+2), popular (+1)
+func (r *AudioRepo) GetRadioQueue(seedAudio *domain.Audio, limit int) ([]domain.Audio, error) {
+	var audios []domain.Audio
+
+	// Build raw SQL for scoring
+	// Priority: 1) Same ustadz, 2) Same mood, 3) Popular, then random
+	orderClause := gorm.Expr(`
+		CASE WHEN ustadz_id = ? THEN 3 ELSE 0 END +
+		CASE WHEN mood_category_id = ? THEN 2 ELSE 0 END +
+		CASE WHEN listening_count > 100 THEN 1 ELSE 0 END DESC,
+		listening_count DESC,
+		RANDOM()
+	`, seedAudio.UstadzID, seedAudio.MoodCategoryID)
+
+	query := r.db.Model(&domain.Audio{}).
+		Preload("MoodCategory").
+		Preload("Ustadz").
+		Where("id != ?", seedAudio.ID). // Exclude seed audio
+		Order(orderClause).
+		Limit(limit)
+
+	if err := query.Find(&audios).Error; err != nil {
+		return nil, err
+	}
+
+	return audios, nil
+}
