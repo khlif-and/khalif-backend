@@ -113,6 +113,8 @@ const (
 	MsgPlaylistDeleted      = "playlist deleted successfully"
 	MsgAudioAddedToPlaylist = "audio added to playlist successfully"
 	MsgAudioRemovedFromPlaylist = "audio removed from playlist successfully"
+	MsgPlaylistLiked   = "playlist liked successfully"
+	MsgPlaylistUnliked = "playlist unliked successfully"
 
 	// Hadist
 	MsgHadistCreated = "hadist created successfully"
