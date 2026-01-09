@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"khalif-backend/internal/core/domain"
-	hadistService "khalif-backend/internal/core/services/hadist"
+	"khalif-backend/internal/core/ports"
 	"khalif-backend/pkg/messages"
 	"khalif-backend/pkg/utils"
 
@@ -13,10 +13,10 @@ import (
 )
 
 type HadistHandler struct {
-	service *hadistService.HadistService
+	service ports.HadistService
 }
 
-func NewHadistHandler(service *hadistService.HadistService) *HadistHandler {
+func NewHadistHandler(service ports.HadistService) *HadistHandler {
 	return &HadistHandler{service: service}
 }
 

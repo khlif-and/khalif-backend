@@ -167,6 +167,7 @@ func NewRouter(
 
 		// Prayer Times (public)
 		api.GET("/prayer-times", prayerHdlr.GetPrayerTimes)
+		api.GET("/prayer-times/daily", prayerHdlr.GetDailyPrayerTimes)
 	}
 
 	users := api.Group("/users")

@@ -14,27 +14,16 @@ type PrayerHandler struct {
 	service ports.PrayerTimeService
 }
 
-func NewPrayerHandler(service ports.PrayerTimeService) *PrayerHandler {
-	return &PrayerHandler{service: service}
+func NewPrayerHandler(s ports.PrayerTimeService) *PrayerHandler {
+	return &PrayerHandler{service: s}
 }
 
-// GetPrayerTimes godoc
-// @Summary Get prayer times and countdown
-// @Description Get 5 daily prayer times, current/next status, and countdown to next prayer
-// @Tags prayer
-// @Produce json
-// @Param lat query number true "Latitude"
-// @Param long query number true "Longitude"
-// @Success 200 {object} domain.PrayerTimesResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/prayer-times [get]
 func (h *PrayerHandler) GetPrayerTimes(c *gin.Context) {
 	latStr := c.Query("lat")
 	longStr := c.Query("long")
 
 	if latStr == "" || longStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "latitude and longitude is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "latitude and longitude required"})
 		return
 	}
 
@@ -62,4 +51,9 @@ func (h *PrayerHandler) GetPrayerTimes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+func (h *PrayerHandler) GetDailyPrayerTimes(c *gin.Context) {
+	// Reusing same logic for now, but exposed as distinct endpoint
+	h.GetPrayerTimes(c)
 }

@@ -1,64 +1,33 @@
 package prayer
 
 import (
-	"errors"
-	"math"
 	"time"
 
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
-
-	"github.com/hablullah/go-prayer"
 )
 
-type prayerService struct{}
-
-func NewPrayerService() ports.PrayerTimeService {
-	return &prayerService{}
+type prayerService struct {
+	calc *Calculator
 }
 
-func (s *prayerService) GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error) {
-	// Calculate timezone offest based on longitude
-	zoneOffset := int(math.Round(req.Longitude / 15.0))
-	loc := time.FixedZone("Local", zoneOffset*3600)
-	now := time.Now().In(loc)
-	year := now.Year()
+func NewPrayerService() ports.PrayerTimeService {
+	return &prayerService{
+		calc: NewCalculator(),
+	}
+}
 
-	// Calculate prayer times for the whole year
-	schedules, err := prayer.Calculate(
-		prayer.Config{
-			Latitude:           req.Latitude,
-			Longitude:          req.Longitude,
-			Timezone:           loc,
-			TwilightConvention: prayer.Kemenag(),
-			AsrConvention:      prayer.Shafii,
-			PreciseToSeconds:   true,
-		},
-		year,
-	)
+// GetPrayerTimes is specific for the Dashboard (Timer + Qibla + Schedule)
+func (s *prayerService) GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error) {
+	loc := s.calc.GetTimezone(req.Longitude)
+	now := time.Now().In(loc)
+
+	todaySchedule, err := s.calc.GetScheduleForDate(req.Latitude, req.Longitude, now)
 	if err != nil {
 		return nil, err
 	}
 
-	// Find today's schedule
-	var todaySchedule prayer.Schedule
-	found := false
-	targetDate := now.Format("2006-01-02")
-
-	for _, s := range schedules {
-		// s.Date is a string in format "2006-01-02"
-		if s.Date == targetDate {
-			todaySchedule = s
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		// Fallback for timezone edge cases (date shift)
-		// Or errors.
-		return nil, errors.New("schedule not found for today")
-	}
+	qibla := s.calc.CalculateQibla(req.Latitude, req.Longitude)
 
 	// Helper to format time in HH:mm
 	format := func(t time.Time) string {
@@ -71,8 +40,12 @@ func (s *prayerService) GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.
 			Lat:  req.Latitude,
 			Long: req.Longitude,
 		},
+		QiblaDirection: qibla,
 		Schedule: domain.PrayerSchedule{
+			Imsak:   format(s.calc.GetImsak(todaySchedule.Fajr)),
 			Subuh:   format(todaySchedule.Fajr),
+			Terbit:  format(todaySchedule.Sunrise),
+			Dhuha:   format(s.calc.GetDhuha(todaySchedule.Sunrise)),
 			Dzuhur:  format(todaySchedule.Zuhr),
 			Asar:    format(todaySchedule.Asr),
 			Maghrib: format(todaySchedule.Maghrib),
@@ -119,46 +92,12 @@ func (s *prayerService) GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.
 		next = "Subuh"
 		
 		tomorrow := now.Add(24 * time.Hour)
+		tomorrowSchedule, err := s.calc.GetScheduleForDate(req.Latitude, req.Longitude, tomorrow)
 		
-		var tomorrowSchedule prayer.Schedule
-		foundTomorrow := false
-		targetTom := tomorrow.Format("2006-01-02")
-		
-		if tomorrow.Year() == year {
-			for _, s := range schedules {
-				if s.Date == targetTom {
-					tomorrowSchedule = s
-					foundTomorrow = true
-					break
-				}
-			}
-		} else {
-			// Calculate for next year
-			nextYearSchedules, _ := prayer.Calculate(
-				prayer.Config{
-					Latitude:           req.Latitude,
-					Longitude:          req.Longitude,
-					Timezone:           loc,
-					TwilightConvention: prayer.Kemenag(),
-					AsrConvention:      prayer.Shafii,
-					PreciseToSeconds:   true,
-				},
-				tomorrow.Year(),
-			)
-			for _, s := range nextYearSchedules {
-				if s.Date == targetTom {
-					tomorrowSchedule = s
-					foundTomorrow = true
-					break
-				}
-			}
-		}
-
-		if foundTomorrow {
+		if err == nil {
 			targetTime = tomorrowSchedule.Fajr
 		} else {
-			// Fallback
-			targetTime = tomorrow 
+			targetTime = tomorrow // fallback
 		}
 	}
 	
@@ -183,4 +122,13 @@ func (s *prayerService) GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.
 	}
 
 	return res, nil
+}
+
+// GetDailyPrayerTimes is for the Full List View (Clean separate endpoint)
+func (s *prayerService) GetDailyPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error) {
+	// Reuses the logic but optimized for the List View (e.g. maybe no countdown needed? or just consistent?)
+	// For now, it returns the same structure but semantically separated.
+	// User requested "bedain supaya ga pusing", so having a dedicated method allows future customization (e.g. different response struct)
+	// Currently reuse the main Logic to ensure consistency.
+	return s.GetPrayerTimes(req)
 }

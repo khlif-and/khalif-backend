@@ -5,17 +5,17 @@ import (
 	"strconv"
 
 	"khalif-backend/internal/core/domain"
-	doaService "khalif-backend/internal/core/services/doa"
+	"khalif-backend/internal/core/ports"
 	"khalif-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DoaHandler struct {
-	service *doaService.DoaService
+	service ports.DoaService
 }
 
-func NewDoaHandler(service *doaService.DoaService) *DoaHandler {
+func NewDoaHandler(service ports.DoaService) *DoaHandler {
 	return &DoaHandler{service: service}
 }
 
