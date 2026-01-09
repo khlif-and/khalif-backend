@@ -11,6 +11,8 @@ A production-ready authentication microservice built with Go, following Clean Ar
 - **Rate Limiting**: Redis-based rate limiting for auth endpoints
 - **Account Lockout**: Automatic account lock after failed login attempts
 - **Listening History**: Track user listening with SP-based spam prevention
+- **Playlist**: Create, manage, and share audio playlists
+- **Meilisearch**: Fast, typo-tolerant search across all content
 - **Profile Picture Upload**: Multipart form upload with automatic fallback to initials avatar
 - **Health Checks**: `/health` and `/ready` endpoints for container orchestration
 - **Graceful Shutdown**: Proper cleanup of database and Redis connections
@@ -30,7 +32,8 @@ A production-ready authentication microservice built with Go, following Clean Ar
 │   │   ├── ports/        # Interfaces (contracts)
 │   │   └── services/     # Business logic
 │   ├── infrastructure/
-│   │   └── email/        # Brevo email service
+│   │   ├── email/        # Brevo email service
+│   │   └── search/       # Meilisearch integration
 │   └── platform/
 │       ├── config/       # Configuration
 │       ├── database/     # DB & Redis connections
@@ -51,6 +54,7 @@ A production-ready authentication microservice built with Go, following Clean Ar
 - **Framework**: Gin
 - **Database**: PostgreSQL with GORM
 - **Cache**: Redis
+- **Search**: Meilisearch
 - **Auth**: JWT (Access + Refresh tokens)
 - **Email**: Brevo (Sendinblue)
 - **Logging**: Zap
@@ -88,23 +92,32 @@ REDIS_DB=0
 BREVO_API_KEY=your_brevo_api_key
 BREVO_SENDER_EMAIL=your@email.com
 BREVO_SENDER_NAME=Khalif App
+
+# Meilisearch
+MEILISEARCH_HOST=http://localhost:7700
+MEILISEARCH_API_KEY=your_master_key
 ```
 
 ## 🚀 Running the Application
 
 ```bash
-# Install dependencies
-go mod download
+# Start all services (PostgreSQL, Redis, Meilisearch) and run the app
+make dev
 
-# Run the server
-go run cmd/api/main.go
+# Stop all services
+make stop-services
+
+# Check service status
+make status
+
+# Run without starting services
+make run
+
+# Build binary
+make build
 
 # Run tests
-go test ./...
-
-# Run specific test suites
-go test ./tests/e2e/...
-go test ./tests/integration/...
+make test
 ```
 
 ## 📡 API Endpoints
@@ -152,6 +165,38 @@ go test ./tests/integration/...
 | GET | `/audio/:id/is-liked` | Check if liked |
 | GET | `/likes` | Get user's liked audios |
 
+### Playlist (`/api/v1/users/playlist`) 🔒
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/` | Create playlist (multipart) |
+| GET | `/` | Get my playlists |
+| PUT | `/:id` | Update playlist |
+| DELETE | `/:id` | Delete playlist |
+| POST | `/:id/audio/:audio_id` | Add audio to playlist |
+| DELETE | `/:id/audio/:audio_id` | Remove audio from playlist |
+| POST | `/:id/like` | Like playlist |
+| DELETE | `/:id/like` | Unlike playlist |
+| GET | `/:id/is-liked` | Check if liked |
+
+### Playlist Public (`/api/v1/playlist`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Get all public playlists |
+| GET | `/:id` | Get playlist detail with audios |
+| POST | `/:id/listen` | Increment listening count |
+
+### Search (`/api/v1/search`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/?q=query` | Unified search (all content) |
+| GET | `/audio?q=query` | Search audios only |
+| GET | `/ustadz?q=query` | Search ustadzs only |
+| GET | `/mood?q=query` | Search mood categories only |
+| GET | `/playlist?q=query` | Search playlists only |
+
 ### Audio, Mood Categories, Ustadz
 
 Public GET endpoints and admin-only CUD operations. See router for details.
@@ -177,6 +222,10 @@ Migrations run automatically on startup via GORM AutoMigrate and SQL files in `m
 - `sp_check_lock_status`: Checks account lock status
 - `sp_revoke_user_tokens`: Revokes all user refresh tokens
 - `sp_record_listening`: Records listening with spam prevention
+- `sp_like_playlist`: Like playlist with atomic increment
+- `sp_unlike_playlist`: Unlike playlist with atomic decrement
+- `sp_record_playlist_listening`: Record playlist listening
+- `sp_add_audio_to_playlist`: Add audio with auto-position
 
 ## 🧪 Testing
 

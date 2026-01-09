@@ -22,6 +22,7 @@ type UnifiedSearchResult struct {
 	Audios         []search.AudioDocument        `json:"audios"`
 	Ustadzs        []search.UstadzDocument       `json:"ustadzs"`
 	MoodCategories []search.MoodCategoryDocument `json:"mood_categories"`
+	Playlists      []search.PlaylistDocument     `json:"playlists"`
 }
 
 // SearchAll performs a unified search across all indices
@@ -56,6 +57,14 @@ func (s *SearchService) SearchAll(query string, limit int64) (*UnifiedSearchResu
 		result.MoodCategories = moods
 	}
 
+	// Search playlists
+	playlists, err := s.meili.SearchPlaylists(query, limit)
+	if err != nil {
+		logger.Log.Error("Failed to search playlists", zap.Error(err))
+	} else {
+		result.Playlists = playlists
+	}
+
 	return result, nil
 }
 
@@ -81,4 +90,12 @@ func (s *SearchService) SearchMoodCategories(query string, limit int64) ([]searc
 		limit = 20
 	}
 	return s.meili.SearchMoodCategories(query, limit)
+}
+
+// SearchPlaylists searches only the playlists index
+func (s *SearchService) SearchPlaylists(query string, limit int64) ([]search.PlaylistDocument, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+	return s.meili.SearchPlaylists(query, limit)
 }

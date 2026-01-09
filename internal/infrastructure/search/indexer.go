@@ -35,6 +35,10 @@ func (i *Indexer) SyncAll() error {
 		logger.Log.Error("Failed to sync mood categories", zap.Error(err))
 	}
 
+	if err := i.SyncPlaylists(); err != nil {
+		logger.Log.Error("Failed to sync playlists", zap.Error(err))
+	}
+
 	logger.Log.Info("Full index sync completed")
 	return nil
 }
@@ -177,4 +181,59 @@ func (i *Indexer) IndexMoodCategoryFromDomain(mood *domain.MoodCategory) error {
 		Color: mood.Color,
 	}
 	return i.meili.IndexMoodCategory(doc)
+}
+
+// SyncPlaylists syncs all playlists to Meilisearch
+func (i *Indexer) SyncPlaylists() error {
+	var playlists []domain.Playlist
+	if err := i.db.Where("is_public = ?", true).Find(&playlists).Error; err != nil {
+		return err
+	}
+
+	var docs []PlaylistDocument
+	for _, playlist := range playlists {
+		// Get audio count
+		var audioCount int64
+		i.db.Model(&domain.PlaylistAudio{}).Where("playlist_id = ?", playlist.ID).Count(&audioCount)
+
+		docs = append(docs, PlaylistDocument{
+			ID:             playlist.UUID,
+			Title:          playlist.Title,
+			Description:    playlist.Description,
+			AuthorName:     playlist.AuthorName,
+			ThumbnailFile:  playlist.ThumbnailFile,
+			LikeCount:      playlist.LikeCount,
+			ListeningCount: playlist.ListeningCount,
+			TotalAudio:     int(audioCount),
+		})
+	}
+
+	if len(docs) > 0 {
+		_, err := i.meili.GetClient().Index(IndexPlaylists).AddDocuments(docs, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	logger.Log.Info("Synced playlists to Meilisearch", zap.Int("count", len(docs)))
+	return nil
+}
+
+// IndexPlaylistFromDomain indexes a single playlist from domain model
+func (i *Indexer) IndexPlaylistFromDomain(playlist *domain.Playlist) error {
+	// Get audio count
+	var audioCount int64
+	i.db.Model(&domain.PlaylistAudio{}).Where("playlist_id = ?", playlist.ID).Count(&audioCount)
+
+	doc := PlaylistDocument{
+		ID:             playlist.UUID,
+		Title:          playlist.Title,
+		Description:    playlist.Description,
+		AuthorName:     playlist.AuthorName,
+		ThumbnailFile:  playlist.ThumbnailFile,
+		LikeCount:      playlist.LikeCount,
+		ListeningCount: playlist.ListeningCount,
+		TotalAudio:     int(audioCount),
+	}
+	return i.meili.IndexPlaylist(doc)
 }

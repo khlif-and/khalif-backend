@@ -112,6 +112,7 @@ func NewRouter(
 			search.GET("/audio", searchHdlr.SearchAudios)
 			search.GET("/ustadz", searchHdlr.SearchUstadzs)
 			search.GET("/mood", searchHdlr.SearchMoodCategories)
+			search.GET("/playlist", searchHdlr.SearchPlaylists)
 		}
 
 		// Playlist public routes

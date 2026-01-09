@@ -15,6 +15,7 @@ const (
 	IndexAudios         = "audios"
 	IndexUstadzs        = "ustadzs"
 	IndexMoodCategories = "mood_categories"
+	IndexPlaylists      = "playlists"
 )
 
 // MeilisearchClient wraps the Meilisearch client
@@ -85,6 +86,22 @@ func (m *MeilisearchClient) initializeIndices() error {
 		"name",
 	})
 
+	// Create playlists index
+	_, err = m.client.CreateIndex(&meilisearch.IndexConfig{
+		Uid:        IndexPlaylists,
+		PrimaryKey: "id",
+	})
+	if err != nil {
+		logger.Log.Debug("Playlists index may already exist", zap.Error(err))
+	}
+
+	// Configure searchable attributes for playlists
+	m.client.Index(IndexPlaylists).UpdateSearchableAttributes(&[]string{
+		"title",
+		"description",
+		"author_name",
+	})
+
 	return nil
 }
 
@@ -122,6 +139,18 @@ type MoodCategoryDocument struct {
 	Color string `json:"color"`
 }
 
+// PlaylistDocument represents a playlist document in Meilisearch
+type PlaylistDocument struct {
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	AuthorName     string `json:"author_name"`
+	ThumbnailFile  string `json:"thumbnail_file"`
+	LikeCount      int64  `json:"like_count"`
+	ListeningCount int64  `json:"listening_count"`
+	TotalAudio     int    `json:"total_audio"`
+}
+
 // IndexAudio adds or updates an audio document
 func (m *MeilisearchClient) IndexAudio(doc AudioDocument) error {
 	_, err := m.client.Index(IndexAudios).AddDocuments([]AudioDocument{doc}, nil)
@@ -155,6 +184,18 @@ func (m *MeilisearchClient) DeleteUstadz(id string) error {
 // DeleteMoodCategory removes a mood category document
 func (m *MeilisearchClient) DeleteMoodCategory(id string) error {
 	_, err := m.client.Index(IndexMoodCategories).DeleteDocument(id, nil)
+	return err
+}
+
+// IndexPlaylist adds or updates a playlist document
+func (m *MeilisearchClient) IndexPlaylist(doc PlaylistDocument) error {
+	_, err := m.client.Index(IndexPlaylists).AddDocuments([]PlaylistDocument{doc}, nil)
+	return err
+}
+
+// DeletePlaylist removes a playlist document
+func (m *MeilisearchClient) DeletePlaylist(id string) error {
+	_, err := m.client.Index(IndexPlaylists).DeleteDocument(id, nil)
 	return err
 }
 
@@ -202,6 +243,22 @@ func (m *MeilisearchClient) SearchMoodCategories(query string, limit int64) ([]M
 	var results []MoodCategoryDocument
 	for _, hit := range resp.Hits {
 		results = append(results, mapToMoodCategoryDocument(hit))
+	}
+	return results, nil
+}
+
+// SearchPlaylists searches the playlists index
+func (m *MeilisearchClient) SearchPlaylists(query string, limit int64) ([]PlaylistDocument, error) {
+	resp, err := m.client.Index(IndexPlaylists).Search(query, &meilisearch.SearchRequest{
+		Limit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var results []PlaylistDocument
+	for _, hit := range resp.Hits {
+		results = append(results, mapToPlaylistDocument(hit))
 	}
 	return results, nil
 }
@@ -258,6 +315,26 @@ func mapToMoodCategoryDocument(hit meilisearch.Hit) MoodCategoryDocument {
 		Name:  getStringFromMap(data, "name"),
 		Icon:  getStringFromMap(data, "icon"),
 		Color: getStringFromMap(data, "color"),
+	}
+}
+
+func mapToPlaylistDocument(hit meilisearch.Hit) PlaylistDocument {
+	data := make(map[string]interface{})
+	for k, v := range hit {
+		var val interface{}
+		if err := json.Unmarshal(v, &val); err == nil {
+			data[k] = val
+		}
+	}
+	return PlaylistDocument{
+		ID:             getStringFromMap(data, "id"),
+		Title:          getStringFromMap(data, "title"),
+		Description:    getStringFromMap(data, "description"),
+		AuthorName:     getStringFromMap(data, "author_name"),
+		ThumbnailFile:  getStringFromMap(data, "thumbnail_file"),
+		LikeCount:      getInt64FromMap(data, "like_count"),
+		ListeningCount: getInt64FromMap(data, "listening_count"),
+		TotalAudio:     int(getInt64FromMap(data, "total_audio")),
 	}
 }
 
