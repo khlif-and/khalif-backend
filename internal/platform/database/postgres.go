@@ -59,6 +59,12 @@ func runMigrations(db *gorm.DB) {
 		&domain.Playlist{},
 		&domain.PlaylistAudio{},
 		&domain.PlaylistLike{},
+		&domain.Hadist{},
+		&domain.HadistLike{},
+		&domain.HadistBookmark{},
+		&domain.Doa{},
+		&domain.DoaLike{},
+		&domain.DoaBookmark{},
 	}
 
 	// AutoMigrate all models - this will:

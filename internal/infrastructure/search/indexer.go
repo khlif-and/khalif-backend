@@ -39,6 +39,10 @@ func (i *Indexer) SyncAll() error {
 		logger.Log.Error("Failed to sync playlists", zap.Error(err))
 	}
 
+	if err := i.SyncDoas(); err != nil {
+		logger.Log.Error("Failed to sync doas", zap.Error(err))
+	}
+
 	logger.Log.Info("Full index sync completed")
 	return nil
 }
@@ -236,4 +240,47 @@ func (i *Indexer) IndexPlaylistFromDomain(playlist *domain.Playlist) error {
 		TotalAudio:     int(audioCount),
 	}
 	return i.meili.IndexPlaylist(doc)
+}
+// DoaDocument represents the data structure for Doa in Meilisearch
+type DoaDocument struct {
+	ID             string `json:"id"`
+	JudulDoa       string `json:"judul_doa"`
+	ArabicDoa      string `json:"arabic_doa"`
+	LatinDoa       string `json:"latin_doa"`
+	TranslateDoa   string `json:"translate_doa"`
+	DescriptionDoa string `json:"description_doa"`
+	CategoryDoa    string `json:"category_doa"`
+	Tags           string `json:"tags"`
+}
+
+// SyncDoas syncs all doas to Meilisearch
+func (i *Indexer) SyncDoas() error {
+	var doas []domain.Doa
+	if err := i.db.Find(&doas).Error; err != nil {
+		return err
+	}
+
+	var docs []DoaDocument
+	for _, doa := range doas {
+		docs = append(docs, DoaDocument{
+			ID:             doa.UUID,
+			JudulDoa:       doa.JudulDoa,
+			ArabicDoa:      doa.ArabicDoa,
+			LatinDoa:       doa.LatinDoa,
+			TranslateDoa:   doa.TranslateDoa,
+			DescriptionDoa: doa.DescriptionDoa,
+			CategoryDoa:    doa.CategoryDoa,
+			Tags:           doa.Tags,
+		})
+	}
+
+	if len(docs) > 0 {
+		_, err := i.meili.GetClient().Index(IndexDoas).AddDocuments(docs, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	logger.Log.Info("Synced doas to Meilisearch", zap.Int("count", len(docs)))
+	return nil
 }

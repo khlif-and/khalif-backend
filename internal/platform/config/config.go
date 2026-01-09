@@ -38,6 +38,9 @@ type Config struct {
 	// Meilisearch
 	MeilisearchHost   string
 	MeilisearchAPIKey string
+
+	// Google Auth
+	GoogleClientID string
 }
 
 func LoadConfig() *Config {
@@ -73,6 +76,8 @@ func LoadConfig() *Config {
 
 		MeilisearchHost:   getEnv("MEILISEARCH_HOST", "http://localhost:7700"),
 		MeilisearchAPIKey: getEnv("MEILISEARCH_API_KEY", ""),
+
+		GoogleClientID: getEnv("GOOGLE_CLIENT_ID", ""),
 	}
 }
 

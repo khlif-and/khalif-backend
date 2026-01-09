@@ -1,7 +1,0 @@
-=== RUN   TestE2E_UserJourney
-
-2026/01/06 23:00:16 [35m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:25
-[0m[31m[error] [0mfailed to initialize database, got error failed to connect to `user=khalif database=khalif_backend`: 127.0.0.1:5432 (localhost): failed SASL auth: FATAL: password authentication failed for user "khalif" (SQLSTATE 28P01)
-2026-01-06T23:00:16.980+0700	[31mFATAL[0m	database/postgres.go:30	failed to connect to database	{"error": "failed to connect to `user=khalif database=khalif_backend`: 127.0.0.1:5432 (localhost): failed SASL auth: FATAL: password authentication failed for user \"khalif\" (SQLSTATE 28P01)"}
-FAIL	khalif-backend/tests/e2e	0.022s
-FAIL

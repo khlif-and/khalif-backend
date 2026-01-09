@@ -182,3 +182,36 @@ func (h *SearchHandler) SearchPlaylists(c *gin.Context) {
 		"total":   len(results),
 	})
 }
+
+// SearchDoas handles doa search
+// @Summary Search doas
+// @Description Search only in doas index
+// @Tags search
+// @Accept json
+// @Produce json
+// @Param q query string true "Search query"
+// @Param limit query int false "Result limit" default(20)
+// @Success 200 {object} map[string]interface{}
+// @Router /api/v1/search/doa [get]
+func (h *SearchHandler) SearchDoas(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'q' is required"})
+		return
+	}
+
+	limitStr := c.DefaultQuery("limit", "20")
+	limit, _ := strconv.ParseInt(limitStr, 10, 64)
+
+	results, err := h.service.SearchDoas(query, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "search failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"query":   query,
+		"results": results,
+		"total":   len(results),
+	})
+}

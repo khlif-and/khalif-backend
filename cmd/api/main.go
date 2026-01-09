@@ -9,30 +9,41 @@ import (
 	"syscall"
 	"time"
 
-	audioHandler "khalif-backend/internal/adapters/handlers/audio"
-	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
-	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
-	likeHandler "khalif-backend/internal/adapters/handlers/like"
-	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
-	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
-	searchHandler "khalif-backend/internal/adapters/handlers/search"
-	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
-	appRouter "khalif-backend/internal/adapters/http"
 	audioRepo "khalif-backend/internal/adapters/repositories/audio"
 	adminAuthRepo "khalif-backend/internal/adapters/repositories/auth/admin"
 	userAuthRepo "khalif-backend/internal/adapters/repositories/auth/user"
+	doaRepo "khalif-backend/internal/adapters/repositories/doa"
+	hadistRepo "khalif-backend/internal/adapters/repositories/hadist"
 	likeRepo "khalif-backend/internal/adapters/repositories/like"
 	moodCategoryRepo "khalif-backend/internal/adapters/repositories/mood_category"
 	playlistRepo "khalif-backend/internal/adapters/repositories/playlist"
 	ustadzRepo "khalif-backend/internal/adapters/repositories/ustadz"
+	
 	audioService "khalif-backend/internal/core/services/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
+	doaService "khalif-backend/internal/core/services/doa"
+	hadistService "khalif-backend/internal/core/services/hadist"
 	likeService "khalif-backend/internal/core/services/like"
 	moodCategoryService "khalif-backend/internal/core/services/mood_category"
 	playlistService "khalif-backend/internal/core/services/playlist"
 	searchService "khalif-backend/internal/core/services/search"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
+	prayerService "khalif-backend/internal/core/services/prayer"
+
+	audioHandler "khalif-backend/internal/adapters/handlers/audio"
+	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
+	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
+	doaHandler "khalif-backend/internal/adapters/handlers/doa"
+	hadistHandler "khalif-backend/internal/adapters/handlers/hadist"
+	likeHandler "khalif-backend/internal/adapters/handlers/like"
+	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
+	searchHandler "khalif-backend/internal/adapters/handlers/search"
+	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
+	prayerHandler "khalif-backend/internal/adapters/handlers/prayer"
+
+	appRouter "khalif-backend/internal/adapters/http"
 	"khalif-backend/internal/infrastructure/email"
 	"khalif-backend/internal/infrastructure/search"
 	"khalif-backend/internal/platform/config"
@@ -79,6 +90,19 @@ func main() {
 	playlistRepoInstance := playlistRepo.NewPlaylistRepo(db)
 	playlistSvc := playlistService.NewPlaylistService(playlistRepoInstance, audioRepoInstance)
 
+	// Hadist
+	hadistRepoInstance := hadistRepo.NewHadistRepo(db)
+	hadistSvc := hadistService.NewHadistService(hadistRepoInstance)
+
+	// Doa
+	doaRepoInstance := doaRepo.NewDoaRepo(db)
+	doaSvc := doaService.NewDoaService(doaRepoInstance, hadistRepoInstance)
+	doaHdlr := doaHandler.NewDoaHandler(doaSvc)
+
+	// Prayer Times
+	prayerSvc := prayerService.NewPrayerService()
+	prayerHdlr := prayerHandler.NewPrayerHandler(prayerSvc)
+
 	// Initialize Meilisearch
 	meiliClient := search.NewMeilisearchClient(cfg)
 	indexer := search.NewIndexer(db, meiliClient)
@@ -101,8 +125,9 @@ func main() {
 	likeHdlr := likeHandler.NewLikeHandler(likeSvc)
 	searchHdlr := searchHandler.NewSearchHandler(searchSvc)
 	playlistHdlr := playlistHandler.NewPlaylistHandler(playlistSvc)
+	hadistHdlr := hadistHandler.NewHadistHandler(hadistSvc)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr, playlistHdlr)
+	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr, playlistHdlr, hadistHdlr, doaHdlr, prayerHdlr)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 	srv := &http.Server{

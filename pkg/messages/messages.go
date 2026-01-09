@@ -45,6 +45,10 @@ const (
 	ErrInvalidOTP              = "invalid or expired OTP"
 	ErrOTPAlreadyUsed          = "OTP has already been used"
 	ErrAccountAlreadyActivated = "account is already activated"
+
+	// Google Auth errors
+	ErrInvalidGoogleToken     = "invalid google token"
+	ErrGoogleEmailNotVerified = "google email not verified"
 )
 
 // Success Messages
