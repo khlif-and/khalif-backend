@@ -29,7 +29,6 @@ func (h *HadistHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Handle audio upload
 	audioFile, err := c.FormFile("audio_file")
 	if err == nil && audioFile != nil {
 		result, err := utils.SaveAudioFile(audioFile)
@@ -47,7 +46,7 @@ func (h *HadistHandler) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Hadist created successfully",
+		"message": messages.MsgHadistCreated,
 		"data":    hadist,
 	})
 }
@@ -61,7 +60,6 @@ func (h *HadistHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// Handle audio upload
 	audioFile, err := c.FormFile("audio_file")
 	if err == nil && audioFile != nil {
 		result, err := utils.SaveAudioFile(audioFile)
@@ -79,7 +77,7 @@ func (h *HadistHandler) Update(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Hadist updated successfully",
+		"message": messages.MsgHadistUpdated,
 		"data":    hadist,
 	})
 }
@@ -92,21 +90,18 @@ func (h *HadistHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Hadist deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgHadistDeleted})
 }
 
 // Public Handlers
 
 func (h *HadistHandler) GetAll(c *gin.Context) {
-	pageStr := c.DefaultQuery("page", "1")
-	limitStr := c.DefaultQuery("limit", "20")
-
-	page, _ := strconv.Atoi(pageStr)
-	limit, _ := strconv.Atoi(limitStr)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
 	response, err := h.service.GetAll(page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return
 	}
 
@@ -118,7 +113,7 @@ func (h *HadistHandler) GetByID(c *gin.Context) {
 
 	hadist, err := h.service.GetByUUID(uuid)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": messages.ErrHadistNotFound})
 		return
 	}
 
@@ -128,18 +123,16 @@ func (h *HadistHandler) GetByID(c *gin.Context) {
 func (h *HadistHandler) GetByCategory(c *gin.Context) {
 	category := c.Query("category")
 	if category == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "category is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrMissingFields})
 		return
 	}
 
-	pageStr := c.DefaultQuery("page", "1")
-	limitStr := c.DefaultQuery("limit", "20")
-	page, _ := strconv.Atoi(pageStr)
-	limit, _ := strconv.Atoi(limitStr)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
 	response, err := h.service.GetByCategory(category, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return
 	}
 
@@ -149,18 +142,16 @@ func (h *HadistHandler) GetByCategory(c *gin.Context) {
 func (h *HadistHandler) GetByKitab(c *gin.Context) {
 	kitab := c.Query("kitab")
 	if kitab == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "kitab is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrMissingFields})
 		return
 	}
 
-	pageStr := c.DefaultQuery("page", "1")
-	limitStr := c.DefaultQuery("limit", "20")
-	page, _ := strconv.Atoi(pageStr)
-	limit, _ := strconv.Atoi(limitStr)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
 	response, err := h.service.GetByKitab(kitab, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": messages.ErrInternalServer})
 		return
 	}
 
@@ -170,7 +161,7 @@ func (h *HadistHandler) GetByKitab(c *gin.Context) {
 func (h *HadistHandler) GetRandom(c *gin.Context) {
 	hadist, err := h.service.GetRandom()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": messages.ErrHadistNotFound})
 		return
 	}
 
@@ -185,7 +176,7 @@ func (h *HadistHandler) IncrementListeningCount(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Listening count incremented"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgListeningCountIncremented})
 }
 
 // User Handlers (Protected)
@@ -203,7 +194,7 @@ func (h *HadistHandler) LikeHadist(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Hadist liked"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgHadistLiked})
 }
 
 func (h *HadistHandler) UnlikeHadist(c *gin.Context) {
@@ -219,7 +210,7 @@ func (h *HadistHandler) UnlikeHadist(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Hadist unliked"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgHadistUnliked})
 }
 
 func (h *HadistHandler) IsLiked(c *gin.Context) {
@@ -252,7 +243,7 @@ func (h *HadistHandler) BookmarkHadist(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Hadist bookmarked"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgHadistBookmarked})
 }
 
 func (h *HadistHandler) UnbookmarkHadist(c *gin.Context) {
@@ -268,7 +259,7 @@ func (h *HadistHandler) UnbookmarkHadist(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Hadist unbookmarked"})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgHadistUnbookmarked})
 }
 
 func (h *HadistHandler) IsBookmarked(c *gin.Context) {
