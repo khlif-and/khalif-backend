@@ -162,7 +162,6 @@ func NewRouter(
 			doa.GET("/category", doaHdlr.GetByCategory)
 			doa.GET("/hadist", doaHdlr.GetByHadist)
 			doa.GET("/:id", doaHdlr.GetByID)
-			doa.GET("/:id", doaHdlr.GetByID)
 			doa.POST("/:id/listen", doaHdlr.IncrementListeningCount)
 		}
 
