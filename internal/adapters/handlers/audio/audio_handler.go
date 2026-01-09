@@ -236,3 +236,23 @@ func (h *AudioHandler) GetListeningHistory(c *gin.Context) {
 		"data": response,
 	})
 }
+
+// GetRadio generates a radio queue based on seed audio
+func (h *AudioHandler) GetRadio(c *gin.Context) {
+	seedUUID := c.Param("id")
+	if seedUUID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "seed audio id is required"})
+		return
+	}
+
+	limitStr := c.DefaultQuery("limit", "20")
+	limit, _ := strconv.Atoi(limitStr)
+
+	response, err := h.service.GenerateRadio(seedUUID, limit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}

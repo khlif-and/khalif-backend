@@ -41,6 +41,8 @@ type AudioService interface {
 	// Listening History with SP
 	RecordListening(userID uint, audioUUID string) (alreadyListened bool, newCount int64, err error)
 	GetUserListeningHistory(userID uint, page, limit int) (*domain.ListeningHistoryResponse, error)
+	// Radio
+	GenerateRadio(seedAudioUUID string, limit int) (*domain.RadioResponse, error)
 }
 
 type MoodCategoryService interface {

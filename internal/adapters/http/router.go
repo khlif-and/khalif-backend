@@ -92,6 +92,9 @@ func NewRouter(
 			audio.GET("/:id", audioHdlr.GetByID)
 		}
 
+		// Radio (public)
+		api.GET("/radio/:id", audioHdlr.GetRadio)
+
 		moods := api.Group("/mood-categories")
 		{
 			moods.GET("", moodHdlr.GetAll)

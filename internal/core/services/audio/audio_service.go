@@ -240,3 +240,33 @@ func (s *audioService) GetUserListeningHistory(userID uint, page, limit int) (*d
 		TotalPages: totalPages,
 	}, nil
 }
+
+// GenerateRadio generates a radio queue based on a seed audio
+func (s *audioService) GenerateRadio(seedAudioUUID string, limit int) (*domain.RadioResponse, error) {
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	// Get seed audio
+	seedAudio, err := s.audioRepo.FindByUUID(seedAudioUUID)
+	if err != nil {
+		logger.Log.Error("Failed to find seed audio", zap.String("uuid", seedAudioUUID), zap.Error(err))
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+	if seedAudio == nil {
+		return nil, errors.New(messages.ErrAudioNotFound)
+	}
+
+	// Get radio queue from repository
+	queue, err := s.audioRepo.GetRadioQueue(seedAudio, limit)
+	if err != nil {
+		logger.Log.Error("Failed to generate radio queue", zap.Error(err))
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+
+	return &domain.RadioResponse{
+		SeedAudio: seedAudio,
+		Queue:     queue,
+		Total:     len(queue),
+	}, nil
+}

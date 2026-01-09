@@ -197,6 +197,14 @@ make test
 | GET | `/mood?q=query` | Search mood categories only |
 | GET | `/playlist?q=query` | Search playlists only |
 
+### Radio (`/api/v1/radio`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/:id?limit=20` | Generate radio queue based on seed audio |
+
+**Radio Algorithm**: Returns similar audios scored by same Ustadz (+3), same Mood (+2), popularity (+1).
+
 ### Audio, Mood Categories, Ustadz
 
 Public GET endpoints and admin-only CUD operations. See router for details.

@@ -73,3 +73,10 @@ type ListeningHistoryResponse struct {
 	Limit      int                `json:"limit"`
 	TotalPages int                `json:"total_pages"`
 }
+
+// RadioResponse contains the seed audio and queue of similar audios
+type RadioResponse struct {
+	SeedAudio *Audio  `json:"seed_audio"`
+	Queue     []Audio `json:"queue"`
+	Total     int     `json:"total"`
+}
