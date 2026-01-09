@@ -17,6 +17,7 @@ const (
 	IndexMoodCategories = "mood_categories"
 	IndexPlaylists      = "playlists"
 	IndexDoas           = "doas"
+	IndexHadists        = "hadists"
 )
 
 // MeilisearchClient wraps the Meilisearch client
@@ -96,7 +97,6 @@ func (m *MeilisearchClient) initializeIndices() error {
 		logger.Log.Debug("Playlists index may already exist", zap.Error(err))
 	}
 
-	// Create doas index
 	_, err = m.client.CreateIndex(&meilisearch.IndexConfig{
 		Uid:        IndexDoas,
 		PrimaryKey: "id",
@@ -105,12 +105,14 @@ func (m *MeilisearchClient) initializeIndices() error {
 		logger.Log.Debug("Doas index may already exist", zap.Error(err))
 	}
 
-	// // Configure filterable attributes for playlists
-	// m.client.Index(IndexPlaylists).UpdateFilterableAttributes(&[]string{
-	// 	"id",
-	// })
-	
-	// Configure searchable attributes for doas
+	_, err = m.client.CreateIndex(&meilisearch.IndexConfig{
+		Uid:        IndexHadists,
+		PrimaryKey: "id",
+	})
+	if err != nil {
+		logger.Log.Debug("Hadists index may already exist", zap.Error(err))
+	}
+
 	m.client.Index(IndexDoas).UpdateSearchableAttributes(&[]string{
 		"judul_doa",
 		"arabic_doa",
@@ -121,18 +123,19 @@ func (m *MeilisearchClient) initializeIndices() error {
 		"category_doa",
 	})
 
-	// // Configure filterable attributes for doas
-	// m.client.Index(IndexDoas).UpdateFilterableAttributes(&[]string{
-	// 	"id",
-	// 	"category_doa",
-	// 	"tags",
-	// })
-
-	// Configure searchable attributes for playlists
 	m.client.Index(IndexPlaylists).UpdateSearchableAttributes(&[]string{
 		"title",
 		"description",
 		"author_name",
+	})
+
+	m.client.Index(IndexHadists).UpdateSearchableAttributes(&[]string{
+		"nama_hadist",
+		"arabic_hadist",
+		"latin_hadist",
+		"translate_hadist",
+		"kitab_hadist",
+		"category_hadist",
 	})
 
 	return nil
@@ -184,6 +187,28 @@ type PlaylistDocument struct {
 	TotalAudio     int    `json:"total_audio"`
 }
 
+type DoaDocument struct {
+	ID             string `json:"id"`
+	JudulDoa       string `json:"judul_doa"`
+	ArabicDoa      string `json:"arabic_doa"`
+	LatinDoa       string `json:"latin_doa"`
+	TranslateDoa   string `json:"translate_doa"`
+	DescriptionDoa string `json:"description_doa"`
+	CategoryDoa    string `json:"category_doa"`
+	Tags           string `json:"tags"`
+}
+
+type HadistDocument struct {
+	ID              string `json:"id"`
+	NamaHadist      string `json:"nama_hadist"`
+	NomorHadist     int    `json:"nomor_hadist"`
+	ArabicHadist    string `json:"arabic_hadist"`
+	LatinHadist     string `json:"latin_hadist"`
+	TranslateHadist string `json:"translate_hadist"`
+	KitabHadist     string `json:"kitab_hadist"`
+	CategoryHadist  string `json:"category_hadist"`
+}
+
 // IndexAudio adds or updates an audio document
 func (m *MeilisearchClient) IndexAudio(doc AudioDocument) error {
 	_, err := m.client.Index(IndexAudios).AddDocuments([]AudioDocument{doc}, nil)
@@ -226,9 +251,28 @@ func (m *MeilisearchClient) IndexPlaylist(doc PlaylistDocument) error {
 	return err
 }
 
-// DeletePlaylist removes a playlist document
 func (m *MeilisearchClient) DeletePlaylist(id string) error {
 	_, err := m.client.Index(IndexPlaylists).DeleteDocument(id, nil)
+	return err
+}
+
+func (m *MeilisearchClient) IndexDoa(doc DoaDocument) error {
+	_, err := m.client.Index(IndexDoas).AddDocuments([]DoaDocument{doc}, nil)
+	return err
+}
+
+func (m *MeilisearchClient) DeleteDoa(id string) error {
+	_, err := m.client.Index(IndexDoas).DeleteDocument(id, nil)
+	return err
+}
+
+func (m *MeilisearchClient) IndexHadist(doc HadistDocument) error {
+	_, err := m.client.Index(IndexHadists).AddDocuments([]HadistDocument{doc}, nil)
+	return err
+}
+
+func (m *MeilisearchClient) DeleteHadist(id string) error {
+	_, err := m.client.Index(IndexHadists).DeleteDocument(id, nil)
 	return err
 }
 
@@ -306,6 +350,21 @@ func (m *MeilisearchClient) SearchDoas(query string, limit int64) ([]DoaDocument
 	}
 
 	var results []DoaDocument
+	hits, _ := json.Marshal(searchRes.Hits)
+	json.Unmarshal(hits, &results)
+
+	return results, nil
+}
+
+func (m *MeilisearchClient) SearchHadists(query string, limit int64) ([]HadistDocument, error) {
+	searchRes, err := m.client.Index(IndexHadists).Search(query, &meilisearch.SearchRequest{
+		Limit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var results []HadistDocument
 	hits, _ := json.Marshal(searchRes.Hits)
 	json.Unmarshal(hits, &results)
 
