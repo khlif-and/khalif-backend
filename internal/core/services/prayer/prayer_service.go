@@ -1,10 +1,9 @@
 package prayer
 
 import (
-	"time"
-
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
+	"time"
 )
 
 type prayerService struct {

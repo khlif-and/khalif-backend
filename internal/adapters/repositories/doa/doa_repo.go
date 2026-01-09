@@ -2,6 +2,7 @@ package doa
 
 import (
 	"khalif-backend/internal/core/domain"
+	"khalif-backend/internal/core/ports"
 
 	"gorm.io/gorm"
 )
@@ -10,7 +11,7 @@ type DoaRepo struct {
 	db *gorm.DB
 }
 
-func NewDoaRepo(db *gorm.DB) *DoaRepo {
+func NewDoaRepo(db *gorm.DB) ports.DoaRepository {
 	return &DoaRepo{db: db}
 }
 

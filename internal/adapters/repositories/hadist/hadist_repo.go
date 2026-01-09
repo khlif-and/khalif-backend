@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"khalif-backend/internal/core/domain"
+	"khalif-backend/internal/core/ports"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ type HadistRepo struct {
 	db *gorm.DB
 }
 
-func NewHadistRepo(db *gorm.DB) *HadistRepo {
+func NewHadistRepo(db *gorm.DB) ports.HadistRepository {
 	return &HadistRepo{db: db}
 }
 
