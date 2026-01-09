@@ -18,3 +18,8 @@ main.exe
 # System
 .DS_Store
 Thumbs.db
+
+# Meilisearch
+data.ms/
+meilisearch.log
+meilisearch

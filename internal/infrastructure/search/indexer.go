@@ -69,7 +69,7 @@ func (i *Indexer) SyncAudios() error {
 	}
 
 	if len(docs) > 0 {
-		_, err := i.meili.GetClient().Index(IndexAudios).AddDocuments(docs, "id")
+		_, err := i.meili.GetClient().Index(IndexAudios).AddDocuments(docs, nil)
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (i *Indexer) SyncUstadzs() error {
 	}
 
 	if len(docs) > 0 {
-		_, err := i.meili.GetClient().Index(IndexUstadzs).AddDocuments(docs, "id")
+		_, err := i.meili.GetClient().Index(IndexUstadzs).AddDocuments(docs, nil)
 		if err != nil {
 			return err
 		}
@@ -125,7 +125,7 @@ func (i *Indexer) SyncMoodCategories() error {
 	}
 
 	if len(docs) > 0 {
-		_, err := i.meili.GetClient().Index(IndexMoodCategories).AddDocuments(docs, "id")
+		_, err := i.meili.GetClient().Index(IndexMoodCategories).AddDocuments(docs, nil)
 		if err != nil {
 			return err
 		}

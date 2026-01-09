@@ -1,6 +1,8 @@
 package search
 
 import (
+	"encoding/json"
+
 	"khalif-backend/internal/platform/config"
 	"khalif-backend/internal/platform/logger"
 
@@ -122,37 +124,37 @@ type MoodCategoryDocument struct {
 
 // IndexAudio adds or updates an audio document
 func (m *MeilisearchClient) IndexAudio(doc AudioDocument) error {
-	_, err := m.client.Index(IndexAudios).AddDocuments([]AudioDocument{doc}, "id")
+	_, err := m.client.Index(IndexAudios).AddDocuments([]AudioDocument{doc}, nil)
 	return err
 }
 
 // IndexUstadz adds or updates an ustadz document
 func (m *MeilisearchClient) IndexUstadz(doc UstadzDocument) error {
-	_, err := m.client.Index(IndexUstadzs).AddDocuments([]UstadzDocument{doc}, "id")
+	_, err := m.client.Index(IndexUstadzs).AddDocuments([]UstadzDocument{doc}, nil)
 	return err
 }
 
 // IndexMoodCategory adds or updates a mood category document
 func (m *MeilisearchClient) IndexMoodCategory(doc MoodCategoryDocument) error {
-	_, err := m.client.Index(IndexMoodCategories).AddDocuments([]MoodCategoryDocument{doc}, "id")
+	_, err := m.client.Index(IndexMoodCategories).AddDocuments([]MoodCategoryDocument{doc}, nil)
 	return err
 }
 
 // DeleteAudio removes an audio document
 func (m *MeilisearchClient) DeleteAudio(id string) error {
-	_, err := m.client.Index(IndexAudios).DeleteDocument(id)
+	_, err := m.client.Index(IndexAudios).DeleteDocument(id, nil)
 	return err
 }
 
 // DeleteUstadz removes an ustadz document
 func (m *MeilisearchClient) DeleteUstadz(id string) error {
-	_, err := m.client.Index(IndexUstadzs).DeleteDocument(id)
+	_, err := m.client.Index(IndexUstadzs).DeleteDocument(id, nil)
 	return err
 }
 
 // DeleteMoodCategory removes a mood category document
 func (m *MeilisearchClient) DeleteMoodCategory(id string) error {
-	_, err := m.client.Index(IndexMoodCategories).DeleteDocument(id)
+	_, err := m.client.Index(IndexMoodCategories).DeleteDocument(id, nil)
 	return err
 }
 
@@ -167,9 +169,7 @@ func (m *MeilisearchClient) SearchAudios(query string, limit int64) ([]AudioDocu
 
 	var results []AudioDocument
 	for _, hit := range resp.Hits {
-		if doc, ok := hit.(map[string]interface{}); ok {
-			results = append(results, mapToAudioDocument(doc))
-		}
+		results = append(results, mapToAudioDocument(hit))
 	}
 	return results, nil
 }
@@ -185,9 +185,7 @@ func (m *MeilisearchClient) SearchUstadzs(query string, limit int64) ([]UstadzDo
 
 	var results []UstadzDocument
 	for _, hit := range resp.Hits {
-		if doc, ok := hit.(map[string]interface{}); ok {
-			results = append(results, mapToUstadzDocument(doc))
-		}
+		results = append(results, mapToUstadzDocument(hit))
 	}
 	return results, nil
 }
@@ -203,55 +201,75 @@ func (m *MeilisearchClient) SearchMoodCategories(query string, limit int64) ([]M
 
 	var results []MoodCategoryDocument
 	for _, hit := range resp.Hits {
-		if doc, ok := hit.(map[string]interface{}); ok {
-			results = append(results, mapToMoodCategoryDocument(doc))
-		}
+		results = append(results, mapToMoodCategoryDocument(hit))
 	}
 	return results, nil
 }
 
 // Helper functions to map search results to structs
-func mapToAudioDocument(doc map[string]interface{}) AudioDocument {
-	return AudioDocument{
-		ID:               getString(doc, "id"),
-		Title:            getString(doc, "title"),
-		UstadzName:       getString(doc, "ustadz_name"),
-		MoodCategoryName: getString(doc, "mood_category_name"),
-		ThumbnailFile:    getString(doc, "thumbnail_file"),
-		AudioFile:        getString(doc, "audio_file"),
-		ListeningCount:   getInt64(doc, "listening_count"),
-		LikeCount:        getInt64(doc, "like_count"),
-		DurationAudio:    int(getInt64(doc, "duration_audio")),
+func mapToAudioDocument(hit meilisearch.Hit) AudioDocument {
+	var doc AudioDocument
+	// Hit is map[string]json.RawMessage, need to convert
+	data := make(map[string]interface{})
+	for k, v := range hit {
+		var val interface{}
+		if err := json.Unmarshal(v, &val); err == nil {
+			data[k] = val
+		}
 	}
+	doc.ID = getStringFromMap(data, "id")
+	doc.Title = getStringFromMap(data, "title")
+	doc.UstadzName = getStringFromMap(data, "ustadz_name")
+	doc.MoodCategoryName = getStringFromMap(data, "mood_category_name")
+	doc.ThumbnailFile = getStringFromMap(data, "thumbnail_file")
+	doc.AudioFile = getStringFromMap(data, "audio_file")
+	doc.ListeningCount = getInt64FromMap(data, "listening_count")
+	doc.LikeCount = getInt64FromMap(data, "like_count")
+	doc.DurationAudio = int(getInt64FromMap(data, "duration_audio"))
+	return doc
 }
 
-func mapToUstadzDocument(doc map[string]interface{}) UstadzDocument {
+func mapToUstadzDocument(hit meilisearch.Hit) UstadzDocument {
+	data := make(map[string]interface{})
+	for k, v := range hit {
+		var val interface{}
+		if err := json.Unmarshal(v, &val); err == nil {
+			data[k] = val
+		}
+	}
 	return UstadzDocument{
-		ID:            getString(doc, "id"),
-		Name:          getString(doc, "name"),
-		Description:   getString(doc, "description"),
-		WikipediaLink: getString(doc, "wikipedia_link"),
+		ID:            getStringFromMap(data, "id"),
+		Name:          getStringFromMap(data, "name"),
+		Description:   getStringFromMap(data, "description"),
+		WikipediaLink: getStringFromMap(data, "wikipedia_link"),
 	}
 }
 
-func mapToMoodCategoryDocument(doc map[string]interface{}) MoodCategoryDocument {
+func mapToMoodCategoryDocument(hit meilisearch.Hit) MoodCategoryDocument {
+	data := make(map[string]interface{})
+	for k, v := range hit {
+		var val interface{}
+		if err := json.Unmarshal(v, &val); err == nil {
+			data[k] = val
+		}
+	}
 	return MoodCategoryDocument{
-		ID:    getString(doc, "id"),
-		Name:  getString(doc, "name"),
-		Icon:  getString(doc, "icon"),
-		Color: getString(doc, "color"),
+		ID:    getStringFromMap(data, "id"),
+		Name:  getStringFromMap(data, "name"),
+		Icon:  getStringFromMap(data, "icon"),
+		Color: getStringFromMap(data, "color"),
 	}
 }
 
-func getString(doc map[string]interface{}, key string) string {
-	if val, ok := doc[key].(string); ok {
+func getStringFromMap(data map[string]interface{}, key string) string {
+	if val, ok := data[key].(string); ok {
 		return val
 	}
 	return ""
 }
 
-func getInt64(doc map[string]interface{}, key string) int64 {
-	if val, ok := doc[key].(float64); ok {
+func getInt64FromMap(data map[string]interface{}, key string) int64 {
+	if val, ok := data[key].(float64); ok {
 		return int64(val)
 	}
 	return 0
