@@ -113,3 +113,27 @@ type PrayerTimeService interface {
 	GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error)
 	GetDailyPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error)
 }
+
+type PlaylistService interface {
+	Create(req *domain.CreatePlaylistRequest, authorType domain.AuthorType, authorID uint) (*domain.Playlist, error)
+	GetByUUID(uuid string) (*domain.PlaylistResponse, error)
+	GetAll(page, limit int) (*domain.PlaylistListResponse, error)
+	GetMyPlaylists(authorType domain.AuthorType, authorID uint, page, limit int) (*domain.PlaylistListResponse, error)
+	Update(uuid string, req *domain.UpdatePlaylistRequest, authorType domain.AuthorType, authorID uint) (*domain.Playlist, error)
+	Delete(uuid string, authorType domain.AuthorType, authorID uint) error
+	AddAudio(playlistUUID, audioUUID string, position int, authorType domain.AuthorType, authorID uint) error
+	RemoveAudio(playlistUUID, audioUUID string, authorType domain.AuthorType, authorID uint) error
+	LikePlaylist(playlistUUID string, userID uint) error
+	UnlikePlaylist(playlistUUID string, userID uint) error
+	IsLiked(playlistUUID string, userID uint) (bool, error)
+	IncrementListeningCount(playlistUUID string) error
+}
+
+type SearchService interface {
+	SearchAll(query string, limit int64) (interface{}, error)
+	SearchAudios(query string, limit int64) (interface{}, error)
+	SearchUstadzs(query string, limit int64) (interface{}, error)
+	SearchMoodCategories(query string, limit int64) (interface{}, error)
+	SearchPlaylists(query string, limit int64) (interface{}, error)
+	SearchDoas(query string, limit int64) (interface{}, error)
+}
