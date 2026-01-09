@@ -1,5 +1,0 @@
-# khalif-backend/tests/e2e_test [khalif-backend/tests/e2e.test]
-tests/e2e/user_journey_test.go:55:11: no new variables on left side of :=
-tests/e2e/user_journey_test.go:68:15: no new variables on left side of :=
-FAIL	khalif-backend/tests/e2e [build failed]
-FAIL

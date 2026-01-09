@@ -23,3 +23,12 @@ Thumbs.db
 data.ms/
 meilisearch.log
 meilisearch
+
+# Logs & Debug files
+*.log
+debug_log*.txt
+test_*.log
+test_*.txt
+e2e_test*.log
+*_result.log
+*_error.log

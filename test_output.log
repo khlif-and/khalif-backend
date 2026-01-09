@@ -1,7 +1,0 @@
-=== RUN   TestE2E_AudioJourney
-
-2026/01/07 12:47:02 [35m/home/khalif/AymGprek/backend/khalif-backend/internal/platform/database/postgres.go:25
-[0m[31m[error] [0mfailed to initialize database, got error failed to connect to `user=postgres database=khalif_backend`: 127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused
-2026-01-07T12:47:02.202+0700	[31mFATAL[0m	database/postgres.go:30	failed to connect to database	{"error": "failed to connect to `user=postgres database=khalif_backend`: 127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused"}
-FAIL	khalif-backend/tests/e2e	0.022s
-FAIL

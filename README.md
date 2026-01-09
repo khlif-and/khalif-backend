@@ -209,6 +209,38 @@ make test
 
 Public GET endpoints and admin-only CUD operations. See router for details.
 
+### Hadist (`/api/v1/hadist`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Get all hadists |
+| GET | `/:id` | Get hadist detail |
+| GET | `/random` | Get random hadist |
+| GET | `/category?category=X` | Get by category |
+| GET | `/kitab?kitab=X` | Get by kitab |
+| POST | `/:id/listen` | Increment listening count |
+
+**User Engagement (Protected):**
+- `POST /api/v1/users/hadist/:id/like`
+- `POST /api/v1/users/hadist/:id/bookmark`
+
+**Admin (Protected):**
+- `POST /api/v1/admin/hadist` (Create)
+- `PUT /api/v1/admin/hadist/:id` (Update)
+- `DELETE /api/v1/admin/hadist/:id` (Delete)
+
+### Prayer Times (`/api/v1/prayer-times`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/?lat={lat}&long={long}` | Get daily prayer schedule + countdown |
+
+**Response features:**
+- Accurate calculation using Kemenag RI method
+- Auto timezone detection based on coordinates
+- Realtime `time_remaining` countdown to next prayer
+- Handles day transition (Next prayer 'Subuh' tomorrow)
+
 ## 🔒 Security Features
 
 - **Password Hashing**: bcrypt with default cost

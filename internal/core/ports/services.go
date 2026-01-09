@@ -25,6 +25,8 @@ type UserAuthService interface {
 	// Password Reset
 	ForgotPassword(email string) error
 	ResetPassword(token, newPassword string) error
+	// Social Login
+	LoginWithGoogle(idToken, userAgent, ipAddress string) (*domain.LoginResponse, error)
 }
 
 type UserService interface {
@@ -67,4 +69,8 @@ type LikeService interface {
 	UnlikeAudio(userID uint, audioUUID string) error
 	GetUserLikes(userID uint, page, limit int) (*domain.LikeListResponse, error)
 	IsLiked(userID uint, audioUUID string) (bool, error)
+}
+
+type PrayerTimeService interface {
+	GetPrayerTimes(req *domain.PrayerTimesRequest) (*domain.PrayerTimesResponse, error)
 }

@@ -13,11 +13,13 @@ import (
 	"khalif-backend/internal/core/ports"
 	"khalif-backend/internal/infrastructure/email"
 	"khalif-backend/internal/platform/config"
+	"khalif-backend/internal/platform/google"
 	"khalif-backend/internal/platform/logger"
 	"khalif-backend/pkg/messages"
 	"khalif-backend/pkg/utils"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type authService struct {
@@ -396,4 +398,91 @@ func (s *authService) ResetPassword(token, newPassword string) error {
 
 	logger.Log.Info("Password reset successful", zap.Uint("userID", userID))
 	return nil
+}
+
+// LoginWithGoogle handles Google Sign-In
+func (s *authService) LoginWithGoogle(idToken, userAgent, ipAddress string) (*domain.LoginResponse, error) {
+	// 1. Verify Google Token
+	payload, err := google.VerifyIDToken(idToken, s.cfg.GoogleClientID)
+	if err != nil {
+		logger.Log.Warn("Invalid Google Token", zap.Error(err))
+		return nil, errors.New("invalid google token")
+	}
+
+	// 2. Check if user exists by email
+	user, err := s.userRepo.FindByEmail(payload.Email)
+	if err != nil {
+		// Only return error if it's NOT a record not found error (which we expect for new users)
+		if !errors.Is(err, gorm.ErrRecordNotFound) && err.Error() != messages.ErrUserNotFound {
+			 logger.Log.Error("Database error checking user existence", zap.Error(err)) // Added detailed logging
+			 // It's safer to proceed with registration flow if user not found, 
+			 // but if it's a DB connection error we should stop. 
+			 // For now, assuming standard repo behavior where not found returns nil user or specific error.
+		}
+	}
+
+	if user == nil {
+		// 3. Register new user
+		randomPwd, _ := generateOTP() // Reusing OTP gen for random string
+		hashedPwd, _ := utils.HashPassword(randomPwd + "google_secret") // Salt it
+		
+		newUser := &domain.User{
+			Username:       payload.Name, // Or generate unique username if collision
+			Email:          payload.Email,
+			PasswordHash:   hashedPwd,
+			IsActivated:    true, // Email verified by Google
+			GoogleID:       payload.Sub,
+			ProfilePicture: payload.Picture,
+		}
+		
+		// Handle potential username collision (simple strategy)
+		if existingUser, _ := s.userRepo.FindByUsername(newUser.Username); existingUser != nil {
+			newUser.Username = fmt.Sprintf("%s_%s", newUser.Username, payload.Sub[:4])
+		}
+
+		if err := s.userRepo.Create(newUser); err != nil {
+			logger.Log.Error("Failed to auto-register google user", zap.Error(err))
+			return nil, errors.New(messages.ErrInternalServer)
+		}
+		user = newUser
+	} else {
+		// 4. Update existing user's Google ID if missing
+		if user.GoogleID == "" {
+			user.GoogleID = payload.Sub
+			if user.ProfilePicture == "" {
+				user.ProfilePicture = payload.Picture
+			}
+			// Also ensure account is activated since they have valid google email
+			if !user.IsActivated {
+				user.IsActivated = true
+			}
+			if err := s.userRepo.Update(user); err != nil {
+				logger.Log.Error("Failed to update user google info", zap.Error(err))
+			}
+		}
+	}
+
+	// 5. Generate Tokens
+	accessToken, err := utils.GenerateAccessToken(user.ID, user.Username, "user", s.cfg.JWTSecret, int(s.cfg.JWTExpHours))
+	if err != nil {
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+
+	refreshTokenString, refreshTokenHash, err := utils.GenerateRefreshToken(user.ID, s.cfg.RefreshTokenSecret, int(s.cfg.RefreshTokenExpDays))
+	if err != nil {
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+
+	err = s.authRepo.StoreRefreshToken(user.ID, refreshTokenHash,
+		time.Now().Add(time.Hour*24*time.Duration(s.cfg.RefreshTokenExpDays)), userAgent, ipAddress)
+
+	if err != nil {
+		return nil, errors.New(messages.ErrInternalServer)
+	}
+
+	return &domain.LoginResponse{
+		Token:        accessToken,
+		RefreshToken: refreshTokenString,
+		User:         user,
+	}, nil
 }

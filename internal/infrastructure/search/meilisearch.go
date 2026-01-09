@@ -16,6 +16,7 @@ const (
 	IndexUstadzs        = "ustadzs"
 	IndexMoodCategories = "mood_categories"
 	IndexPlaylists      = "playlists"
+	IndexDoas           = "doas"
 )
 
 // MeilisearchClient wraps the Meilisearch client
@@ -94,6 +95,38 @@ func (m *MeilisearchClient) initializeIndices() error {
 	if err != nil {
 		logger.Log.Debug("Playlists index may already exist", zap.Error(err))
 	}
+
+	// Create doas index
+	_, err = m.client.CreateIndex(&meilisearch.IndexConfig{
+		Uid:        IndexDoas,
+		PrimaryKey: "id",
+	})
+	if err != nil {
+		logger.Log.Debug("Doas index may already exist", zap.Error(err))
+	}
+
+	// // Configure filterable attributes for playlists
+	// m.client.Index(IndexPlaylists).UpdateFilterableAttributes(&[]string{
+	// 	"id",
+	// })
+	
+	// Configure searchable attributes for doas
+	m.client.Index(IndexDoas).UpdateSearchableAttributes(&[]string{
+		"judul_doa",
+		"arabic_doa",
+		"latin_doa",
+		"translate_doa",
+		"description_doa",
+		"tags",
+		"category_doa",
+	})
+
+	// // Configure filterable attributes for doas
+	// m.client.Index(IndexDoas).UpdateFilterableAttributes(&[]string{
+	// 	"id",
+	// 	"category_doa",
+	// 	"tags",
+	// })
 
 	// Configure searchable attributes for playlists
 	m.client.Index(IndexPlaylists).UpdateSearchableAttributes(&[]string{
@@ -247,9 +280,9 @@ func (m *MeilisearchClient) SearchMoodCategories(query string, limit int64) ([]M
 	return results, nil
 }
 
-// SearchPlaylists searches the playlists index
+// SearchPlaylists performs search on playlists index
 func (m *MeilisearchClient) SearchPlaylists(query string, limit int64) ([]PlaylistDocument, error) {
-	resp, err := m.client.Index(IndexPlaylists).Search(query, &meilisearch.SearchRequest{
+	searchRes, err := m.client.Index(IndexPlaylists).Search(query, &meilisearch.SearchRequest{
 		Limit: limit,
 	})
 	if err != nil {
@@ -257,9 +290,25 @@ func (m *MeilisearchClient) SearchPlaylists(query string, limit int64) ([]Playli
 	}
 
 	var results []PlaylistDocument
-	for _, hit := range resp.Hits {
-		results = append(results, mapToPlaylistDocument(hit))
+	hits, _ := json.Marshal(searchRes.Hits)
+	json.Unmarshal(hits, &results)
+
+	return results, nil
+}
+
+// SearchDoas performs search on doas index
+func (m *MeilisearchClient) SearchDoas(query string, limit int64) ([]DoaDocument, error) {
+	searchRes, err := m.client.Index(IndexDoas).Search(query, &meilisearch.SearchRequest{
+		Limit: limit,
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	var results []DoaDocument
+	hits, _ := json.Marshal(searchRes.Hits)
+	json.Unmarshal(hits, &results)
+
 	return results, nil
 }
 

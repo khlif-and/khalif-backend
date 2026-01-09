@@ -242,24 +242,68 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	})
 }
 
+// ResetPassword handles password reset
+// @Summary Reset password
+// @Description Reset password using token
+// @Tags auth-user
+// @Accept json
+// @Produce json
+// @Param request body domain.ResetPasswordRequest true "Request body"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/auth/reset-password [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req domain.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrBadRequest})
-		return
-	}
-
-	if len(req.NewPassword) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": messages.ErrPasswordTooShort})
-		return
-	}
-
-	if err := h.service.ResetPassword(req.Token, req.NewPassword); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": messages.MsgPasswordResetSuccess,
-	})
+	if err := h.service.ResetPassword(req.Token, req.NewPassword); err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == messages.ErrInvalidToken || err.Error() == messages.ErrUserNotFound {
+			status = http.StatusBadRequest
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+// GoogleLogin handles Google Sign-In
+// @Summary Login with Google
+// @Description Login or Register using Google ID Token
+// @Tags auth-user
+// @Accept json
+// @Produce json
+// @Param request body map[string]string true "Request body with id_token"
+// @Success 200 {object} domain.LoginResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/auth/google-login [post]
+func (h *AuthHandler) GoogleLogin(c *gin.Context) {
+	var req struct {
+		IDToken string `json:"id_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userAgent := c.Request.UserAgent()
+	ipAddress := c.ClientIP()
+
+	resp, err := h.service.LoginWithGoogle(req.IDToken, userAgent, ipAddress)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "invalid google token" {
+			status = http.StatusUnauthorized
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
