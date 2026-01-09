@@ -7,6 +7,7 @@ import (
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
 	likeHandler "khalif-backend/internal/adapters/handlers/like"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
 	searchHandler "khalif-backend/internal/adapters/handlers/search"
 	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	"khalif-backend/internal/platform/config"
@@ -26,6 +27,7 @@ func NewRouter(
 	ustadzHdlr *ustadzHandler.UstadzHandler,
 	likeHdlr *likeHandler.LikeHandler,
 	searchHdlr *searchHandler.SearchHandler,
+	playlistHdlr *playlistHandler.PlaylistHandler,
 ) *gin.Engine {
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -77,6 +79,11 @@ func NewRouter(
 			admin.POST("/ustadz", ustadzHdlr.Create)
 			admin.PUT("/ustadz/:id", ustadzHdlr.Update)
 			admin.DELETE("/ustadz/:id", ustadzHdlr.Delete)
+
+			// Playlist admin routes
+			admin.POST("/playlist", playlistHdlr.CreateAdmin)
+			admin.PUT("/playlist/:id", playlistHdlr.UpdateAdmin)
+			admin.DELETE("/playlist/:id", playlistHdlr.DeleteAdmin)
 		}
 
 		audio := api.Group("/audio")
@@ -105,6 +112,14 @@ func NewRouter(
 			search.GET("/audio", searchHdlr.SearchAudios)
 			search.GET("/ustadz", searchHdlr.SearchUstadzs)
 			search.GET("/mood", searchHdlr.SearchMoodCategories)
+		}
+
+		// Playlist public routes
+		playlist := api.Group("/playlist")
+		{
+			playlist.GET("", playlistHdlr.GetAll)
+			playlist.GET("/:id", playlistHdlr.GetByID)
+			playlist.POST("/:id/listen", playlistHdlr.IncrementListeningCount)
 		}
 	}
 
@@ -139,6 +154,17 @@ func NewRouter(
 		usersProtected.DELETE("/audio/:id/like", likeHdlr.UnlikeAudio)
 		usersProtected.GET("/audio/:id/is-liked", likeHdlr.IsLiked)
 		usersProtected.GET("/likes", likeHdlr.GetUserLikes)
+
+		// Playlist user routes
+		usersProtected.POST("/playlist", playlistHdlr.CreateUser)
+		usersProtected.GET("/playlist", playlistHdlr.GetMyPlaylists)
+		usersProtected.PUT("/playlist/:id", playlistHdlr.UpdateUser)
+		usersProtected.DELETE("/playlist/:id", playlistHdlr.DeleteUser)
+		usersProtected.POST("/playlist/:id/audio/:audio_id", playlistHdlr.AddAudioToPlaylist)
+		usersProtected.DELETE("/playlist/:id/audio/:audio_id", playlistHdlr.RemoveAudioFromPlaylist)
+		usersProtected.POST("/playlist/:id/like", playlistHdlr.LikePlaylist)
+		usersProtected.DELETE("/playlist/:id/like", playlistHdlr.UnlikePlaylist)
+		usersProtected.GET("/playlist/:id/is-liked", playlistHdlr.IsLiked)
 	}
 
 	return r

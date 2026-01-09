@@ -14,6 +14,7 @@ import (
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
 	likeHandler "khalif-backend/internal/adapters/handlers/like"
 	moodCategoryHandler "khalif-backend/internal/adapters/handlers/mood_category"
+	playlistHandler "khalif-backend/internal/adapters/handlers/playlist"
 	searchHandler "khalif-backend/internal/adapters/handlers/search"
 	ustadzHandler "khalif-backend/internal/adapters/handlers/ustadz"
 	appRouter "khalif-backend/internal/adapters/http"
@@ -22,12 +23,14 @@ import (
 	userAuthRepo "khalif-backend/internal/adapters/repositories/auth/user"
 	likeRepo "khalif-backend/internal/adapters/repositories/like"
 	moodCategoryRepo "khalif-backend/internal/adapters/repositories/mood_category"
+	playlistRepo "khalif-backend/internal/adapters/repositories/playlist"
 	ustadzRepo "khalif-backend/internal/adapters/repositories/ustadz"
 	audioService "khalif-backend/internal/core/services/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
 	likeService "khalif-backend/internal/core/services/like"
 	moodCategoryService "khalif-backend/internal/core/services/mood_category"
+	playlistService "khalif-backend/internal/core/services/playlist"
 	searchService "khalif-backend/internal/core/services/search"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
 	"khalif-backend/internal/infrastructure/email"
@@ -72,6 +75,10 @@ func main() {
 	ustadzSvc := ustadzService.NewUstadzService(ustadzRepoInstance)
 	likeSvc := likeService.NewLikeService(likeRepoInstance, audioRepoInstance)
 
+	// Playlist
+	playlistRepoInstance := playlistRepo.NewPlaylistRepo(db)
+	playlistSvc := playlistService.NewPlaylistService(playlistRepoInstance, audioRepoInstance)
+
 	// Initialize Meilisearch
 	meiliClient := search.NewMeilisearchClient(cfg)
 	indexer := search.NewIndexer(db, meiliClient)
@@ -93,8 +100,9 @@ func main() {
 	ustadzHdlr := ustadzHandler.NewUstadzHandler(ustadzSvc)
 	likeHdlr := likeHandler.NewLikeHandler(likeSvc)
 	searchHdlr := searchHandler.NewSearchHandler(searchSvc)
+	playlistHdlr := playlistHandler.NewPlaylistHandler(playlistSvc)
 
-	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr)
+	router := appRouter.NewRouter(cfg, authHandler, adminHandler, userAuthHdlr, userHandler, audioHdlr, moodCategoryHdlr, ustadzHdlr, likeHdlr, searchHdlr, playlistHdlr)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)
 	srv := &http.Server{

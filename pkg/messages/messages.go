@@ -90,4 +90,12 @@ const (
 	EmailTemplateOTP           = "otp.html"
 	EmailTemplatePasswordReset = "password_reset.html"
 	EmailTemplateWelcome       = "welcome.html"
+
+	// Playlist
+	MsgPlaylistNotFound     = "playlist not found"
+	MsgPlaylistCreated      = "playlist created successfully"
+	MsgPlaylistUpdated      = "playlist updated successfully"
+	MsgPlaylistDeleted      = "playlist deleted successfully"
+	MsgAudioAddedToPlaylist = "audio added to playlist successfully"
+	MsgAudioRemovedFromPlaylist = "audio removed from playlist successfully"
 )

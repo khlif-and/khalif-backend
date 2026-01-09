@@ -6,12 +6,19 @@
 # Default target
 dev: start-services run
 
-# Start PostgreSQL and Redis services
+# Start PostgreSQL, Redis, and Meilisearch services
 start-services:
 	@echo "🔄 Starting PostgreSQL..."
 	@sudo service postgresql start 2>/dev/null || echo "PostgreSQL already running or failed to start"
 	@echo "🔄 Starting Redis..."
 	@sudo service redis-server start 2>/dev/null || echo "Redis already running or failed to start"
+	@echo "🔄 Starting Meilisearch..."
+	@if pgrep -x "meilisearch" > /dev/null; then \
+		echo "Meilisearch already running"; \
+	else \
+		./meilisearch --master-key="khalif_search_key" > meilisearch.log 2>&1 & \
+		echo "Meilisearch started (logs: meilisearch.log)"; \
+	fi
 	@echo "✅ Services started!"
 	@sleep 1
 
@@ -21,6 +28,8 @@ stop-services:
 	@sudo service postgresql stop 2>/dev/null || true
 	@echo "🛑 Stopping Redis..."
 	@sudo service redis-server stop 2>/dev/null || true
+	@echo "🛑 Stopping Meilisearch..."
+	@pkill -x meilisearch 2>/dev/null || true
 	@echo "✅ Services stopped!"
 
 # Run the application
@@ -52,6 +61,8 @@ status:
 	@sudo service postgresql status 2>/dev/null || echo "  Not running"
 	@echo "Redis:"
 	@sudo service redis-server status 2>/dev/null || echo "  Not running"
+	@echo "Meilisearch:"
+	@pgrep -x meilisearch > /dev/null && echo "  Running" || echo "  Not running"
 
 # Install dependencies
 deps:
@@ -65,8 +76,8 @@ help:
 	@echo "Available commands:"
 	@echo "  make dev      - Start services and run the app (default)"
 	@echo "  make run      - Run the app without starting services"
-	@echo "  make start-services - Start PostgreSQL & Redis"
-	@echo "  make stop-services  - Stop PostgreSQL & Redis"
+	@echo "  make start-services - Start PostgreSQL, Redis & Meilisearch"
+	@echo "  make stop-services  - Stop PostgreSQL, Redis & Meilisearch"
 	@echo "  make build    - Build the application"
 	@echo "  make test     - Run tests"
 	@echo "  make status   - Check service status"
