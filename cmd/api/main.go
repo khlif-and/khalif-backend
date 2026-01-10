@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"khalif-backend/internal/adapters/repositories"
 	audioRepo "khalif-backend/internal/adapters/repositories/audio"
 	adminAuthRepo "khalif-backend/internal/adapters/repositories/auth/admin"
 	userAuthRepo "khalif-backend/internal/adapters/repositories/auth/user"
@@ -19,6 +20,7 @@ import (
 	playlistRepo "khalif-backend/internal/adapters/repositories/playlist"
 	ustadzRepo "khalif-backend/internal/adapters/repositories/ustadz"
 
+	"khalif-backend/internal/core/services"
 	audioService "khalif-backend/internal/core/services/audio"
 	adminAuthService "khalif-backend/internal/core/services/auth/admin"
 	userAuthService "khalif-backend/internal/core/services/auth/user"
@@ -31,6 +33,7 @@ import (
 	searchService "khalif-backend/internal/core/services/search"
 	ustadzService "khalif-backend/internal/core/services/ustadz"
 
+	alquranHandler "khalif-backend/internal/adapters/handlers/alquran"
 	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
@@ -96,6 +99,10 @@ func main() {
 	doaSvc := doaService.NewDoaService(doaRepoInstance, hadistRepoInstance)
 	doaHdlr := doaHandler.NewDoaHandler(doaSvc)
 
+	alquranRepoInstance := repositories.NewAlquranRepository(db)
+	alquranSvc := services.NewAlquranService(alquranRepoInstance)
+	alquranHdlr := alquranHandler.NewAlquranHandler(alquranSvc)
+
 	prayerSvc := prayerService.NewPrayerService()
 	prayerHdlr := prayerHandler.NewPrayerHandler(prayerSvc)
 
@@ -139,6 +146,7 @@ func main() {
 		hadistHdlr,
 		doaHdlr,
 		prayerHdlr,
+		alquranHdlr,
 	)
 
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)

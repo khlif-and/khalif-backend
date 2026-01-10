@@ -2,6 +2,7 @@ package http
 
 import (
 	"khalif-backend/internal/adapters/handlers"
+	alquranHandler "khalif-backend/internal/adapters/handlers/alquran"
 	audioHandler "khalif-backend/internal/adapters/handlers/audio"
 	adminAuthHandler "khalif-backend/internal/adapters/handlers/auth/admin"
 	userAuthHandler "khalif-backend/internal/adapters/handlers/auth/user"
@@ -35,6 +36,7 @@ func NewRouter(
 	hadistHdlr *hadistHandler.HadistHandler,
 	doaHdlr *doaHandler.DoaHandler,
 	prayerHdlr *prayerHandler.PrayerHandler,
+	alquranHdlr *alquranHandler.AlquranHandler,
 ) *gin.Engine {
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -157,6 +159,11 @@ func NewRouter(
 			doa.GET("/:id", doaHdlr.GetByID)
 			doa.POST("/:id/listen", doaHdlr.IncrementListeningCount)
 		}
+
+
+		api.POST("/alquran", alquranHdlr.CreateEndpoint)
+		api.GET("/alquran", alquranHdlr.GetAllEndpont)
+		api.GET("/alquran/:id", alquranHdlr.GetByIDEndpoint)
 
 		api.GET("/prayer-times", prayerHdlr.GetPrayerTimes)
 		api.GET("/prayer-times/daily", prayerHdlr.GetDailyPrayerTimes)
