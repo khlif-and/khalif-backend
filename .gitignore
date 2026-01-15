@@ -32,3 +32,8 @@ test_*.txt
 e2e_test*.log
 *_result.log
 *_error.log
+
+# Secrets (PENTING: Jangan dihapus)
+khalifServiceKeyGoogle.json
+serviceAccountKey.json
+*.key
