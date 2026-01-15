@@ -2,13 +2,15 @@ package database
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/platform/config"
 	appLogger "khalif-backend/internal/platform/logger"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,16 +34,21 @@ func InitDB(cfg *config.Config) *gorm.DB {
 
 	appLogger.Log.Info("Database connected successfully")
 
-	// Run Migrations
-	runMigrations(DB)
+	// Run GORM AutoMigrate for model sync
+	runAutoMigrate(DB)
+
+	// Run SQL Migrations with golang-migrate (tracked)
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode)
+	runMigrations(databaseURL)
 
 	return DB
 }
 
-func runMigrations(db *gorm.DB) {
-	appLogger.Log.Info("Running Auto-Migrations...")
+func runAutoMigrate(db *gorm.DB) {
+	appLogger.Log.Info("Running GORM AutoMigrate...")
 
-	// List of models to migrate
+	// List of models to migrate - GORM handles struct-based migrations
 	models := []interface{}{
 		&domain.Admin{},
 		&domain.AdminAuditLog{},
@@ -67,39 +74,44 @@ func runMigrations(db *gorm.DB) {
 		&domain.DoaBookmark{},
 	}
 
-	// AutoMigrate all models - this will:
-	// - Create tables if not exist
-	// - Add new columns if missing
-	// - Add new indexes if missing
 	if err := db.AutoMigrate(models...); err != nil {
 		appLogger.Log.Error("AutoMigrate failed", zap.Error(err))
 	} else {
 		appLogger.Log.Info("AutoMigrate completed successfully")
 	}
+}
 
-	appLogger.Log.Info("Table migration complete.")
+func runMigrations(databaseURL string) {
+	appLogger.Log.Info("Running SQL Migrations with golang-migrate...")
 
-	migrationDir := "migrations/sql"
-	files, err := os.ReadDir(migrationDir)
+	// Get absolute path to migrations directory
+	migrationPath, err := filepath.Abs("migrations/sql")
 	if err != nil {
-		appLogger.Log.Error("Could not read migration directory", zap.String("dir", migrationDir), zap.Error(err))
+		appLogger.Log.Error("Failed to get migration path", zap.Error(err))
 		return
 	}
 
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".sql" {
-			path := filepath.Join(migrationDir, file.Name())
-			content, err := os.ReadFile(path)
-			if err != nil {
-				appLogger.Log.Error("Failed to read migration file", zap.String("file", file.Name()), zap.Error(err))
-				continue
-			}
+	sourceURL := fmt.Sprintf("file://%s", migrationPath)
 
-			sqlQuery := string(content)
-			
-			if err := db.Exec(sqlQuery).Error; err != nil {
-				appLogger.Log.Error("Migration File Failed", zap.String("file", file.Name()), zap.Error(err))
-			} 
-		}
+	m, err := migrate.New(sourceURL, databaseURL)
+	if err != nil {
+		appLogger.Log.Error("Failed to create migrate instance", zap.Error(err))
+		return
 	}
+	defer m.Close()
+
+	// Run all pending migrations
+	if err := m.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			appLogger.Log.Info("No new migrations to apply")
+		} else {
+			appLogger.Log.Error("Migration failed", zap.Error(err))
+		}
+		return
+	}
+
+	version, dirty, _ := m.Version()
+	appLogger.Log.Info("Migrations applied successfully",
+		zap.Uint("version", version),
+		zap.Bool("dirty", dirty))
 }

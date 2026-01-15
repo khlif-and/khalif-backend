@@ -176,13 +176,19 @@ func NewRouter(
 		usersAuth.POST("/register", userAuthHdlr.Register)
 		usersAuth.POST("/login", userAuthHdlr.Login)
 		usersAuth.POST("/refresh-token", userAuthHdlr.RefreshToken)
-		usersAuth.POST("/logout", userAuthHdlr.Logout)
 		usersAuth.POST("/forgot-password", userAuthHdlr.ForgotPassword)
 		usersAuth.POST("/reset-password", userAuthHdlr.ResetPassword)
 		usersAuth.POST("/google-login", userAuthHdlr.GoogleLogin)
-		usersAuth.GET("/me", userAuthHdlr.Me)
 		usersAuth.POST("/verify-otp", userAuthHdlr.VerifyOTP)
 		usersAuth.POST("/resend-otp", userAuthHdlr.ResendOTP)
+
+		// Protected auth routes (require valid JWT)
+		usersAuthProtected := usersAuth.Group("/")
+		usersAuthProtected.Use(middleware.UserAuthMiddleware(cfg))
+		{
+			usersAuthProtected.POST("/logout", userAuthHdlr.Logout)
+			usersAuthProtected.GET("/me", userAuthHdlr.Me)
+		}
 	}
 
 	usersProtected := users.Group("/")

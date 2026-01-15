@@ -13,7 +13,7 @@ type User struct {
 	Email               string         `gorm:"uniqueIndex;size:100;not null" json:"email"`
 	Phone               string         `gorm:"uniqueIndex;size:20;not null" json:"phone"`
 	PasswordHash        string         `gorm:"size:255;not null" json:"-"` // Never return password
-	GoogleID            string         `gorm:"uniqueIndex;size:100" json:"google_id,omitempty"`
+	GoogleID            *string        `gorm:"uniqueIndex;size:100" json:"google_id,omitempty"`
 	ProfilePicture      string         `gorm:"type:text" json:"profile_picture"`
 	IsActivated         bool           `gorm:"default:false" json:"is_activated"`
 	FailedLoginAttempts int            `gorm:"default:0" json:"-"`

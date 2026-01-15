@@ -5,7 +5,6 @@ import (
 
 	"khalif-backend/internal/core/domain"
 	"khalif-backend/internal/core/ports"
-	"khalif-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
