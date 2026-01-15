@@ -1,7 +1,16 @@
 # Makefile for Khalif Backend
 # Auto-start PostgreSQL & Redis before running the app
 
-.PHONY: dev run start-services stop-services build test clean
+.PHONY: dev run start-services stop-services build test clean migrate-up migrate-down migrate-status migrate-create
+
+# Database configuration (loaded from .env or defaults)
+DB_HOST ?= localhost
+DB_PORT ?= 5432
+DB_USER ?= postgres
+DB_PASSWORD ?= postgres
+DB_NAME ?= khalif_db
+DB_SSLMODE ?= disable
+DATABASE_URL = postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 # Default target
 dev: start-services run
@@ -71,16 +80,71 @@ deps:
 	go mod tidy
 	@echo "✅ Dependencies installed!"
 
+# ============================================
+# Migration Commands (golang-migrate)
+# ============================================
+
+# Run all pending migrations
+migrate-up:
+	@echo "⬆️  Running migrations..."
+	@migrate -path migrations/sql -database "$(DATABASE_URL)" up
+	@echo "✅ Migrations applied!"
+
+# Rollback last migration
+migrate-down:
+	@echo "⬇️  Rolling back last migration..."
+	@migrate -path migrations/sql -database "$(DATABASE_URL)" down 1
+	@echo "✅ Rollback complete!"
+
+# Rollback all migrations
+migrate-reset:
+	@echo "🔄 Resetting all migrations..."
+	@migrate -path migrations/sql -database "$(DATABASE_URL)" down -all
+	@echo "✅ All migrations rolled back!"
+
+# Show current migration version
+migrate-version:
+	@echo "📊 Current migration version:"
+	@migrate -path migrations/sql -database "$(DATABASE_URL)" version
+
+# Force set migration version (use with caution!)
+migrate-force:
+	@echo "⚠️  Force setting migration version to $(VERSION)..."
+	@migrate -path migrations/sql -database "$(DATABASE_URL)" force $(VERSION)
+	@echo "✅ Version forced!"
+
+# Create new migration file
+migrate-create:
+	@if [ -z "$(NAME)" ]; then \
+		echo "❌ Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	@echo "📝 Creating migration: $(NAME)..."
+	@migrate create -ext sql -dir migrations/sql -seq $(NAME)
+	@echo "✅ Migration files created!"
+
 # Help
 help:
 	@echo "Available commands:"
+	@echo ""
+	@echo "  📦 Application:"
 	@echo "  make dev      - Start services and run the app (default)"
 	@echo "  make run      - Run the app without starting services"
-	@echo "  make start-services - Start PostgreSQL, Redis & Meilisearch"
-	@echo "  make stop-services  - Stop PostgreSQL, Redis & Meilisearch"
 	@echo "  make build    - Build the application"
 	@echo "  make test     - Run tests"
-	@echo "  make status   - Check service status"
-	@echo "  make clean    - Clean build artifacts"
 	@echo "  make deps     - Install dependencies"
+	@echo "  make clean    - Clean build artifacts"
+	@echo ""
+	@echo "  🔌 Services:"
+	@echo "  make start-services - Start PostgreSQL, Redis & Meilisearch"
+	@echo "  make stop-services  - Stop PostgreSQL, Redis & Meilisearch"
+	@echo "  make status   - Check service status"
+	@echo ""
+	@echo "  🗄️  Migrations:"
+	@echo "  make migrate-up      - Run all pending migrations"
+	@echo "  make migrate-down    - Rollback last migration"
+	@echo "  make migrate-reset   - Rollback all migrations"
+	@echo "  make migrate-version - Show current migration version"
+	@echo "  make migrate-create NAME=xxx - Create new migration"
+	@echo ""
 	@echo "  make help     - Show this help"

@@ -431,7 +431,7 @@ func (s *authService) LoginWithGoogle(idToken, userAgent, ipAddress string) (*do
 			Email:          payload.Email,
 			PasswordHash:   hashedPwd,
 			IsActivated:    true, // Email verified by Google
-			GoogleID:       payload.Sub,
+			GoogleID:       &payload.Sub,
 			ProfilePicture: payload.Picture,
 		}
 		
@@ -447,8 +447,8 @@ func (s *authService) LoginWithGoogle(idToken, userAgent, ipAddress string) (*do
 		user = newUser
 	} else {
 		// 4. Update existing user's Google ID if missing
-		if user.GoogleID == "" {
-			user.GoogleID = payload.Sub
+		if user.GoogleID == nil || *user.GoogleID == "" {
+			user.GoogleID = &payload.Sub
 			if user.ProfilePicture == "" {
 				user.ProfilePicture = payload.Picture
 			}
